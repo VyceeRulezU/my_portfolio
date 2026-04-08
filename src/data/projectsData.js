@@ -36,7 +36,7 @@ export const ALL_PROJECTS = [
     processImages: [
       "https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=2069&auto=format&fit=crop"
     ],
-    url: "https://privy.id"
+    url: "https://app-privyid.vercel.app/"
   },
   {
     id: "osus",
