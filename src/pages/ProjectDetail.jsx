@@ -187,32 +187,6 @@ export default function ProjectDetail() {
             </div>
          </motion.div>
 
-         {/* Call to Action for External Link */}
-         {project.url && project.url !== "#" && (
-           <motion.div 
-             initial={{ opacity: 0, y: 20 }}
-             whileInView={{ opacity: 1, y: 0 }}
-             viewport={{ once: true }}
-             style={{ display: 'flex', justifyContent: 'center', marginBottom: '10rem' }}
-           >
-             <a 
-               href={project.url} 
-               target="_blank" 
-               rel="noopener noreferrer" 
-               className="button-primary"
-               style={{ 
-                 padding: '1.25rem 2.5rem', 
-                 fontSize: '0.85rem', 
-                 gap: '0.75rem',
-                 background: 'var(--text-primary)',
-                 color: 'var(--bg-primary)'
-               }}
-             >
-               {project.type === 'case' || project.type === 'other' ? 'OPEN PROTOTYPE' : 'VISIT LIVE SITE'}
-               <span style={{ fontSize: '1.2rem' }}>&#8599;</span>
-             </a>
-           </motion.div>
-         )}
 
         {/* Process Gallery Section */}
         {galleryLoading ? (
