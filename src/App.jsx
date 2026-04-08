@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import CVModal from './components/CVModal';
 import BackToTop from './components/BackToTop';
+import { Analytics } from '@vercel/analytics/react';
 
 // Lazy loading pages for better performance
 const Home = lazy(() => import('./pages/Home'));
@@ -70,6 +71,9 @@ function App() {
       
       {/* Scroll to Top Trigger */}
       <BackToTop />
+
+      {/* Vercel Analytics */}
+      <Analytics />
     </div>
   );
 }
