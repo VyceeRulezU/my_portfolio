@@ -3,6 +3,7 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import CVModal from './components/CVModal';
+import BackToTop from './components/BackToTop';
 
 // Lazy loading pages for better performance
 const Home = lazy(() => import('./pages/Home'));
@@ -66,6 +67,9 @@ function App() {
 
       {/* Global In-Page CV Modal */}
       <CVModal isOpen={isCVOpen} onClose={closeCV} />
+      
+      {/* Scroll to Top Trigger */}
+      <BackToTop />
     </div>
   );
 }
