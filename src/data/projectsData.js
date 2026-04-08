@@ -72,7 +72,7 @@ export const ALL_PROJECTS = [
     processImages: [
       "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop"
     ],
-    url: "#"
+    url: "https://www.figma.com/proto/P99y9k23M3sXvwCujbGM0g/InsightIQ?node-id=12-233&viewport=-595%2C313%2C0.08&t=gs7hHyhVSMdgt9zg-1&scaling=min-zoom&content-scaling=fixed&starting-point-node-id=12%3A233&page-id=1%3A2"
   },
   {
     id: "supplio",
@@ -89,7 +89,7 @@ export const ALL_PROJECTS = [
     impact: "Concept prototype showcased a potential 40% reduction in document processing time.",
     img: "/portfolio/supplio/Slide%201.png",
     processImages: [],
-    url: "#"
+    url: "https://www.figma.com/proto/nNA8Y473OoP8Y6vGwQ2Tdb/Supplio-Prototype?node-id=1-4865&viewport=171%2C490%2C0.1&t=tzj7TT3717SiRHN0-1&scaling=min-zoom&content-scaling=fixed&page-id=0%3A1"
   },
   {
     id: "healthaxis",
@@ -106,7 +106,7 @@ export const ALL_PROJECTS = [
     impact: "Designed to handle 10,000+ concurrent users with sub-second data retrieval times.",
     img: "/portfolio/healthaxis/Cover%20Page%202.png",
     processImages: [],
-    url: "#"
+    url: "https://www.figma.com/proto/SzvpglB11s9g3QDinLI82N/HealthAxis-Prototype?node-id=1-1451&viewport=-1685%2C192%2C0.22&t=paBPUpJHjw3Gltrm-1&scaling=min-zoom&content-scaling=fixed&page-id=0%3A1"
   },
   {
     id: "kolofunds",
@@ -123,7 +123,7 @@ export const ALL_PROJECTS = [
     impact: "Concept user testing showed an 85% success rate for maintaining a 3-month saving streak.",
     img: "/portfolio/kolofunds/KF%20Moockup%202.png",
     processImages: [],
-    url: "#"
+    url: "https://kolofunds.framer.website/"
   },
   {
     id: "hirenest",
@@ -140,7 +140,7 @@ export const ALL_PROJECTS = [
     impact: "Reduced the 'Time-to-Hire' metric by an average of 35% in simulated testing cycles.",
     img: "/portfolio/hirenest/Rec%20Hero%20Section.png",
     processImages: [],
-    url: "#"
+    url: "https://www.figma.com/proto/qiNwxOr2fWSJym9vrpHfSi/Web-Apps?page-id=34%3A1736&node-id=34-6217&viewport=168%2C-37%2C0.23&t=5xRxIENyTxQ1xFvh-1&scaling=min-zoom&content-scaling=fixed&starting-point-node-id=34%3A5733"
   },
   {
     id: "exscape",

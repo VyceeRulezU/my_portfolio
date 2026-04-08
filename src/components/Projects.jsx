@@ -200,17 +200,35 @@ export default function Projects() {
                   {project.desc}
                 </p>
 
-                {/* Link */}
-                <Link to={`/work/${project.id}`} style={{
-                  color: 'var(--text-primary)',
-                  textDecoration: 'none',
-                  fontSize: '0.65rem',
-                  fontWeight: '700',
-                  letterSpacing: '0.15em',
-                  marginTop: 'auto'
-                }}>
-                  {project.linkText}
-                </Link>
+                <div style={{ display: 'flex', gap: '1.5rem', marginTop: 'auto', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <Link to={`/work/${project.id}`} style={{
+                    color: 'var(--text-primary)',
+                    textDecoration: 'none',
+                    fontSize: '0.65rem',
+                    fontWeight: '700',
+                    letterSpacing: '0.15em',
+                    textTransform: 'uppercase'
+                  }}>
+                    View Case Study
+                  </Link>
+                  {project.url && project.url !== '#' && (
+                    <a href={project.url} target="_blank" rel="noopener noreferrer" style={{
+                      color: 'var(--text-tertiary)',
+                      textDecoration: 'none',
+                      fontSize: '0.65rem',
+                      fontWeight: '700',
+                      letterSpacing: '0.15em',
+                      textTransform: 'uppercase',
+                      transition: 'color 0.2s',
+                      borderBottom: '1px solid transparent'
+                    }}
+                    onMouseOver={(e) => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.borderBottom = '1px solid var(--text-primary)'; }}
+                    onMouseOut={(e) => { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.borderBottom = '1px solid transparent'; }}
+                    >
+                      {project.type === 'case' || project.type === 'other' ? 'View Prototype \u2197' : 'Visit Site \u2197'}
+                    </a>
+                  )}
+                </div>
               </motion.div>
             ))}
           </AnimatePresence>

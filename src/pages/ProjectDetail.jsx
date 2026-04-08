@@ -139,17 +139,16 @@ export default function ProjectDetail() {
               <div style={{ fontSize: '0.6rem', fontWeight: '700', color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '0.1em' }}>TIMELINE</div>
               <div style={{ fontWeight: '600', fontSize: '0.9rem' }}>{project.year !== "2025" ? project.year : "Ongoing"}</div>
            </div>
-           {project.url && project.url !== "#" ? (
+           {project.url && project.url !== "#" && (
              <div>
-                <div style={{ fontSize: '0.6rem', fontWeight: '700', color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '0.1em' }}>LIVE PROJECT</div>
-                <div><a href={project.url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-primary)', fontWeight: '600', fontSize: '0.9rem', textDecoration: 'none', borderBottom: '1px solid currentColor' }}>Visit Website &rarr;</a></div>
+                <div style={{ fontSize: '0.6rem', fontWeight: '700', color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '0.1em' }}>
+                  {project.type === 'case' || project.type === 'other' ? 'PROTOTYPE' : 'LIVE PROJECT'}
+                </div>
+                <div><a href={project.url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-primary)', fontWeight: '600', fontSize: '0.9rem', textDecoration: 'none', borderBottom: '1px solid currentColor' }}>
+                  {project.type === 'case' || project.type === 'other' ? 'View Prototype \u2197' : 'Visit Website \u2197'}
+                </a></div>
              </div>
-           ) : project.figmaUrl ? (
-             <div>
-                <div style={{ fontSize: '0.6rem', fontWeight: '700', color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '0.1em' }}>PROTOTYPE</div>
-                <div><a href={project.figmaUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-primary)', fontWeight: '600', fontSize: '0.9rem', textDecoration: 'none', borderBottom: '1px solid currentColor' }}>View in Figma &rarr;</a></div>
-             </div>
-           ) : null}
+           )}
         </div>
 
         {/* Main Hero Image */}
@@ -187,6 +186,33 @@ export default function ProjectDetail() {
                </div>
             </div>
          </motion.div>
+
+         {/* Call to Action for External Link */}
+         {project.url && project.url !== "#" && (
+           <motion.div 
+             initial={{ opacity: 0, y: 20 }}
+             whileInView={{ opacity: 1, y: 0 }}
+             viewport={{ once: true }}
+             style={{ display: 'flex', justifyContent: 'center', marginBottom: '10rem' }}
+           >
+             <a 
+               href={project.url} 
+               target="_blank" 
+               rel="noopener noreferrer" 
+               className="button-primary"
+               style={{ 
+                 padding: '1.25rem 2.5rem', 
+                 fontSize: '0.85rem', 
+                 gap: '0.75rem',
+                 background: 'var(--text-primary)',
+                 color: 'var(--bg-primary)'
+               }}
+             >
+               {project.type === 'case' || project.type === 'other' ? 'OPEN PROTOTYPE' : 'VISIT LIVE SITE'}
+               <span style={{ fontSize: '1.2rem' }}>&#8599;</span>
+             </a>
+           </motion.div>
+         )}
 
         {/* Process Gallery Section */}
         {galleryLoading ? (
