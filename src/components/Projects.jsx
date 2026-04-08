@@ -77,7 +77,7 @@ export default function Projects() {
         }}>
           <div>
             <div style={{ color: 'var(--text-tertiary)', fontSize: '0.65rem', fontWeight: '700', letterSpacing: '0.2rem', textTransform: 'uppercase', marginBottom: '1.5rem' }}>
-               \u2014 SELECTED WORK
+               / SELECTED WORK
             </div>
             <motion.h2 
               initial={{ opacity: 0, x: -40 }}
@@ -225,7 +225,7 @@ export default function Projects() {
                     onMouseOver={(e) => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.borderBottom = '1px solid var(--text-primary)'; }}
                     onMouseOut={(e) => { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.borderBottom = '1px solid transparent'; }}
                     >
-                      {project.type === 'case' || project.type === 'other' ? 'View Prototype \u2197' : 'Visit Site \u2197'}
+                      {project.type === 'case' || project.type === 'other' ? 'View Prototype ↗' : 'Visit Site ↗'}
                     </a>
                   )}
                 </div>

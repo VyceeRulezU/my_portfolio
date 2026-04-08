@@ -4,32 +4,32 @@ const BELIEFS = [
   {
     num: "01",
     title: "Don't stay in one lane.",
-    desc: "The best products are built by people who can design, manage, and build. I started as a web designer, became a product designer, expanded into PM, and now I build AI-powered systems end-to-end. Each transition wasn't a pivot \u2014 it was an accumulation."
+    desc: "The best products are built by people who can design, manage, and build. I started as a web designer, became a product designer, expanded into PM, and now I build AI-powered systems end-to-end. Each transition wasn't a pivot — it was an accumulation."
   },
   {
     num: "02",
-    title: "Ship, don't just plan.",
-    desc: "Strategy is meaningless without execution. I run lean \u2014 research fast, prototype early, ship often, measure ruthlessly. Kelick went from concept to paying customers without a full engineering team because I refused to separate designing from building."
+    title: "Strategy is meaningless without execution.",
+    desc: "Strategy is meaningless without execution. I run lean — research fast, prototype early, ship often, measure ruthlessly. Kelick went from concept to paying customers without a full engineering team because I refused to separate designing from building."
   },
   {
     num: "03",
     title: "Automate everything repeatable.",
-    desc: "If a human is doing something a workflow can handle, that's waste. I build automation layers into every product \u2014 not as an add-on, but as a core architectural decision. AI doesn't replace thinking; it eliminates friction so you can think better."
+    desc: "If a human is doing something a workflow can handle, that's waste. I build automation layers into every product — not as an add-on, but as a core architectural decision. AI doesn't replace thinking; it eliminates friction so you can think better."
   }
 ];
 
 const JOURNEY = [
-  { year: "2025-Present", title: "Lead Web UX Designer", sub: "JOBIN.CLOUD \u00B7 AI Recruitment SaaS", desc: "Leading design for an AI-powered recruitment platform. Focusing on complex UX workflows and a unified design system." },
-  { year: "2024", title: "SaaS Builder", sub: "GOVERNANCE RESOURCE HUB \u00B7 EDTECH", desc: "Built and launched governanceresourcehub.com, a comprehensive platform democratizing governance education." },
-  { year: "2022-2024", title: "Product Management", sub: "ERCAS \u00B7 FINTECH \u00B7 WEB UX", desc: "Managed end-to-end product lifecycles at ERCAS, bridging the gap between business goals and user-facing design." },
-  { year: "2020-2022", title: "Product Design", sub: "NALITECH \u00B7 WEB UX \u00B7 DESIGN SYSTEMS", desc: "Transitioned fully into Product Design, delivering 40+ high-impact web and mobile interfaces." },
-  { year: "2014-2020", title: "Where it began", sub: "VISUAL DESIGN \u00B7 BRANDING \u00B7 WEB", desc: "Started the creative journey focusing on visual aesthetics, typography, and foundational web design." }
+  { year: "2025-Present", title: "Lead Web UX Designer", sub: "JOBIN.CLOUD / AI Recruitment SaaS", desc: "Leading design for an AI-powered recruitment platform. Focusing on complex UX workflows and a unified design system." },
+  { year: "2024", title: "SaaS Builder", sub: "GOVERNANCE RESOURCE HUB / EDTECH", desc: "Built and launched governanceresourcehub.com, a comprehensive platform democratizing governance education." },
+  { year: "2022-2024", title: "Product Management", sub: "ERCAS / FINTECH / WEB UX", desc: "Managed end-to-end product lifecycles at ERCAS, bridging the gap between business goals and user-facing design." },
+  { year: "2020-2022", title: "Product Design", sub: "NALITECH / WEB UX / DESIGN SYSTEMS", desc: "Transitioned fully into Product Design, delivering 40+ high-impact web and mobile interfaces." },
+  { year: "2014-2020", title: "Where it began", sub: "VISUAL DESIGN / BRANDING / WEB", desc: "Started the creative journey focusing on visual aesthetics, typography, and foundational web design." }
 ];
 
 const CREDENTIALS = [
   { title: "UX Design Certificate", org: "DEV AND DESIGN", year: "2022" },
   { title: "Product Management Basics", org: "PENDO", year: "2024" },
-  { title: "Frontend Engineering\u00AE", org: "DEV AND DESIGN", year: "2025" },
+  { title: "Certified ScrumMaster®", org: "SCRUM ALLIANCE", year: "2023" },
   { title: "Google UX Design Professional", org: "COURSERA", year: "2021" }
 ];
 
@@ -41,7 +41,7 @@ export default function About() {
         {/* Intro Section */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginBottom: '8rem' }}>
           <div style={{ color: 'var(--text-tertiary)', fontSize: '0.65rem', fontWeight: '700', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
-            \u2014 HOME / ABOUT
+            / HOME / ABOUT
           </div>
           
           <motion.h1 

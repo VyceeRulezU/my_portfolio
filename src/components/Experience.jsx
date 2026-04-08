@@ -5,33 +5,33 @@ const EXPERIENCES = [
     num: "01",
     company: "Jobin.cloud",
     role: "Lead UX / Product Designer",
-    period: "JAN 2024 \u2014 PRESENT",
-    desc: "Drove a 25% increase in user activation by leading the end-to-end redesign of the core SaaS dashboard \u2014 validated through stakeholder feedback and iterative usability testing. Architected a design system of 5,000+ components in Figma, significantly cutting design iteration time and established a single source of truth across design and engineering.",
+    period: "JAN 2024 / PRESENT",
+    desc: "Drove a 25% increase in user activation by leading the end-to-end redesign of the core SaaS dashboard — validated through stakeholder feedback and iterative usability testing. Architected a design system of 5,000+ components in Figma, significantly cutting design iteration time and established a single source of truth across design and engineering.",
     pills: ["25% ACTIVATION BI", "5K+ COMPONENTS", "SAAS DASHBOARD"],
     tags: ["FIGMA", "REACT", "TAILWIND", "DESIGN SYSTEMS", "UX RESEARCH"],
-    link: "JOBIN.CLOUD \u2192",
+    link: "JOBIN.CLOUD →",
     url: "https://jobin.cloud"
   },
   {
     num: "02",
     company: "ERCAS",
     role: "Product Designer",
-    period: "AUG 2015 \u2014 MAR 2024",
+    period: "AUG 2015 / MAR 2024",
     desc: "Designed interfaces for ERCAS Pay, Collect, POS, and USSD payment platforms, serving over 10 million users across 7 Nigerian state governments. Led UX for enterprise onboarding and delivered WCAG-compliant front-end designs in close collaboration with developers, ensuring accessibility and scalability across all government-facing platforms.",
     pills: ["10M+ USERS", "PAYMENT SYSTEMS", "ENTERPRISE UX"],
     tags: ["UX DESIGN", "WCAG", "REACT", "E-SERVICES", "USSD"],
-    link: "ERCAS.COM \u2192",
+    link: "ERCAS.COM →",
     url: "https://ercas.com"
   },
   {
     num: "03",
     company: "NaliTech Consults",
     role: "Web Designer",
-    period: "APR 2020 \u2014 DEC 2023",
+    period: "APR 2020 / DEC 2023",
     desc: "Delivered 40+ client projects (Salongrid, Manueltech, etc.) from wireframe to deployment. Introduced component-based design workflows that reduced delivery time by an estimated 30%. Built and customised websites using WordPress, Webflow, Framer, and custom HTML/CSS/JS.",
     pills: ["40+ PROJECTS", "30% FASTER DELIVERY", "WEBFLOW / WORDPRESS"],
     tags: ["WEB DESIGN", "BRANDING", "WORDPRESS", "WEBFLOW", "HTML/CSS/JS"],
-    link: "NALITECH.PRO \u2192",
+    link: "NALITECH.PRO →",
     url: "https://nalitech.pro"
   }
 ];

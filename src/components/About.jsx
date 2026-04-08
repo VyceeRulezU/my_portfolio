@@ -4,30 +4,30 @@ const BELIEFS = [
   {
     num: "01",
     title: "Don't stay in one lane.",
-    desc: "The best products are built by people who can design, manage, and build. I started as a web designer, became a product designer, expanded into PM, and now I build AI-powered systems end-to-end. Each transition wasn't a pivot \u2014 it was an accumulation."
+    desc: "The best products are built by people who can design, manage, and build. I started as a web designer, became a product designer, expanded into PM, and now I build AI-powered systems end-to-end. Each transition wasn't a pivot — it was an accumulation."
   },
   {
     num: "02",
     title: "Ship, don't just plan.",
-    desc: "Strategy is meaningless without execution. I run lean \u2014 research fast, prototype early, ship often, measure ruthlessly. Kelick went from concept to paying customers without a full engineering team because I refused to separate designing from building."
+    desc: "Strategy is meaningless without execution. I run lean — research fast, prototype early, ship often, measure ruthlessly. Kelick went from concept to paying customers without a full engineering team because I refused to separate designing from building."
   },
   {
     num: "03",
     title: "Automate everything repeatable.",
-    desc: "If a human is doing something a workflow can handle, that's waste. I build automation layers into every product \u2014 not as an add-on, but as a core architectural decision. AI doesn't replace thinking; it eliminates friction so you can think better."
+    desc: "If a human is doing something a workflow can handle, that's waste. I build automation layers into every product — not as an add-on, but as a core architectural decision. AI doesn't replace thinking; it eliminates friction so you can think better."
   }
 ];
 
 const JOURNEY = [
-  { year: "2025", title: "Founder & AI Engineer", sub: "NODEMATION \u00B7 N8N \u00B7 VOICE AI", desc: "Founded Nodemation \u2014 a Singapore-registered AI automation agency. Builds n8n workflows, LLM integrations, and voice AI agents that make SMEs run leaner. Growing @fabian.n8n." },
-  { year: "2024", title: "SaaS Builder", sub: "0 \u2192 1 \u00B7 B2B SAAS", desc: "Built Kelick from 0 to 1 as sole designer and PM. Handled UX, React frontend, PostgreSQL backend, and go-to-market. $10K MRR, 5+ paying customers." },
-  { year: "2022", title: "Product Management", sub: "STRATEGY \u00B7 SPRINTS \u00B7 ROADMAPS", desc: "Expanded from design into product strategy. Sprints, PRDs, roadmaps, stakeholder alignment. Became UI/UX + PM at ION Mobility. Got CSM certified." },
-  { year: "2021", title: "Product Design", sub: "FIGMA \u00B7 UX \u00B7 SYSTEMS", desc: "Discovered Figma and UX. Moved from visual aesthetics into understanding user behavior, design systems, and product thinking. Joined Aureus Group." },
+  { year: "2025", title: "Founder & AI Engineer", sub: "NODEMATION / N8N / VOICE AI", desc: "Founded Nodemation — a Singapore-registered AI automation agency. Builds n8n workflows, LLM integrations, and voice AI agents that make SMEs run leaner. Growing @fabian.n8n." },
+  { year: "2024", title: "SaaS Builder", sub: "0 → 1 / B2B SAAS", desc: "Built Kelick from 0 to 1 as sole designer and PM. Handled UX, React frontend, PostgreSQL backend, and go-to-market. $10K MRR, 5+ paying customers." },
+  { year: "2022", title: "Product Management", sub: "STRATEGY / SPRINTS / ROADMAPS", desc: "Expanded from design into product strategy. Sprints, PRDs, roadmaps, stakeholder alignment. Became UI/UX + PM at ION Mobility. Got CSM certified." },
+  { year: "2021", title: "Product Design", sub: "FIGMA / UX / SYSTEMS", desc: "Discovered Figma and UX. Moved from visual aesthetics into understanding user behavior, design systems, and product thinking. Joined Aureus Group." },
   { year: "2020", title: "Web Design", sub: "WHERE IT BEGAN", desc: "Started building client websites. Learned HTML/CSS, visual hierarchy, and the \"fundamentals of how the web works\". Design as craft." }
 ];
 
 const CREDENTIALS = [
-  { title: "Certified ScrumMaster\u00AE", org: "SCRUM ALLIANCE", year: "2023" },
+  { title: "Certified ScrumMaster®", org: "SCRUM ALLIANCE", year: "2023" },
   { title: "Product Management Basics", org: "PENDO", year: "2024" },
   { title: "Product-Led Certification", org: "PENDO", year: "2024" },
   { title: "UX Design Certificate", org: "VERTICAL INSTITUTE", year: "2022" },
@@ -60,7 +60,7 @@ export default function About() {
         {/* Intro Section */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginBottom: '8rem' }}>
           <div style={{ color: 'var(--text-tertiary)', fontSize: '0.65rem', fontWeight: '700', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
-            \u2014 HOME / ABOUT
+            / HOME / ABOUT
           </div>
           
           <motion.h1 

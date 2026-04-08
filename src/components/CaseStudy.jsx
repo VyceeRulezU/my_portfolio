@@ -8,7 +8,7 @@ export default function CaseStudy() {
         {/* Intro */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginBottom: '8rem' }}>
           <div style={{ color: 'var(--text-tertiary)', fontSize: '0.65rem', fontWeight: '700', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
-            \u2014 HOME / CASE STUDY / CRAFTBIT PRO
+            / HOME / CASE STUDY / CRAFTBIT PRO
           </div>
           
           <motion.h1 

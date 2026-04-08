@@ -19,17 +19,17 @@ const BELIEFS = [
 ];
 
 const JOURNEY = [
-  { year: "2025-Present", title: "Lead Web UX Designer", sub: "JOBIN.CLOUD \u00B7 AI Recruitment SaaS", desc: "Leading design for an AI-powered recruitment platform. Focusing on complex UX workflows and a unified design system." },
-  { year: "2024", title: "SaaS Builder", sub: "GOVERNANCE RESOURCE HUB \u00B7 EDTECH", desc: "Built and launched governanceresourcehub.com, a comprehensive platform democratizing governance education." },
-  { year: "2022-2024", title: "Product Management", sub: "ERCAS \u00B7 FINTECH \u00B7 WEB UX", desc: "Managed end-to-end product lifecycles at ERCAS, bridging the gap between business goals and user-facing design." },
-  { year: "2020-2022", title: "Product Design", sub: "NALITECH \u00B7 WEB UX \u00B7 DESIGN SYSTEMS", desc: "Transitioned fully into Product Design, delivering 40+ high-impact web and mobile interfaces." },
-  { year: "2014-2020", title: "Where it began", sub: "VISUAL DESIGN \u00B7 BRANDING \u00B7 WEB", desc: "Started the creative journey focusing on visual aesthetics, typography, and foundational web design." }
+  { year: "2025-Present", title: "Lead Web UX Designer", sub: "JOBIN.CLOUD / AI Recruitment SaaS", desc: "Leading design for an AI-powered recruitment platform. Focusing on complex UX workflows and a unified design system." },
+  { year: "2024", title: "SaaS Builder", sub: "GOVERNANCE RESOURCE HUB / EDTECH", desc: "Built and launched governanceresourcehub.com, a comprehensive platform democratizing governance education." },
+  { year: "2022-2024", title: "Product Management", sub: "ERCAS / FINTECH / WEB UX", desc: "Managed end-to-end product lifecycles at ERCAS, bridging the gap between business goals and user-facing design." },
+  { year: "2020-2022", title: "Product Design", sub: "NALITECH / WEB UX / DESIGN SYSTEMS", desc: "Transitioned fully into Product Design, delivering 40+ high-impact web and mobile interfaces." },
+  { year: "2014-2020", title: "Where it began", sub: "VISUAL DESIGN / BRANDING / WEB", desc: "Started the creative journey focusing on visual aesthetics, typography, and foundational web design." }
 ];
 
 const CREDENTIALS = [
   { title: "UX Design Certificate", org: "VERTICAL INSTITUTE", year: "2022" },
   { title: "Product Management Basics", org: "PENDO", year: "2024" },
-  { title: "Certified ScrumMaster\u00AE", org: "SCRUM ALLIANCE", year: "2023" },
+  { title: "Certified ScrumMaster®", org: "SCRUM ALLIANCE", year: "2023" },
   { title: "Google UX Design Professional", org: "COURSERA", year: "2021" }
 ];
 
@@ -41,7 +41,7 @@ export default function AboutPage() {
         {/* Header Section */}
         <div style={{ marginBottom: '8rem' }}>
           <div style={{ color: 'var(--text-tertiary)', fontSize: '0.65rem', fontWeight: '700', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '2rem' }}>
-             \u2014 ABOUT ME
+             / ABOUT ME
           </div>
           <motion.h1 
             initial={{ opacity: 0, y: 30 }}

@@ -102,7 +102,7 @@ export default function ProjectDetail() {
         {/* Title & Headline */}
         <div style={{ marginBottom: '6rem' }}>
            <div style={{ color: 'var(--text-tertiary)', fontSize: '0.65rem', fontWeight: '700', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '1.5rem' }}>
-              HOME / CASE STUDY / {project.title}
+              / CASE STUDY / {project.title}
            </div>
            <motion.h1 
              initial={{ opacity: 0, y: 30 }}
@@ -145,7 +145,7 @@ export default function ProjectDetail() {
                   {project.type === 'case' || project.type === 'other' ? 'PROTOTYPE' : 'LIVE PROJECT'}
                 </div>
                 <div><a href={project.url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-primary)', fontWeight: '600', fontSize: '0.9rem', textDecoration: 'none', borderBottom: '1px solid currentColor' }}>
-                  {project.type === 'case' || project.type === 'other' ? 'View Prototype \u2197' : 'Visit Website \u2197'}
+                  {project.type === 'case' || project.type === 'other' ? 'View Prototype ↗' : 'Visit Website ↗'}
                 </a></div>
              </div>
            )}
