@@ -1,0 +1,265 @@
+import { motion } from 'framer-motion';
+
+const BELIEFS = [
+  {
+    num: "01",
+    title: "Don't stay in one lane.",
+    desc: "The best products are built by people who can design, manage, and build. I started as a web designer, became a product designer, expanded into PM, and now I build AI-powered systems end-to-end. Each transition wasn't a pivot \u2014 it was an accumulation."
+  },
+  {
+    num: "02",
+    title: "Ship, don't just plan.",
+    desc: "Strategy is meaningless without execution. I run lean \u2014 research fast, prototype early, ship often, measure ruthlessly. Kelick went from concept to paying customers without a full engineering team because I refused to separate designing from building."
+  },
+  {
+    num: "03",
+    title: "Automate everything repeatable.",
+    desc: "If a human is doing something a workflow can handle, that's waste. I build automation layers into every product \u2014 not as an add-on, but as a core architectural decision. AI doesn't replace thinking; it eliminates friction so you can think better."
+  }
+];
+
+const JOURNEY = [
+  { year: "2025", title: "Founder & AI Engineer", sub: "NODEMATION \u00B7 N8N \u00B7 VOICE AI", desc: "Founded Nodemation \u2014 a Singapore-registered AI automation agency. Builds n8n workflows, LLM integrations, and voice AI agents that make SMEs run leaner. Growing @fabian.n8n." },
+  { year: "2024", title: "SaaS Builder", sub: "0 \u2192 1 \u00B7 B2B SAAS", desc: "Built Kelick from 0 to 1 as sole designer and PM. Handled UX, React frontend, PostgreSQL backend, and go-to-market. $10K MRR, 5+ paying customers." },
+  { year: "2022", title: "Product Management", sub: "STRATEGY \u00B7 SPRINTS \u00B7 ROADMAPS", desc: "Expanded from design into product strategy. Sprints, PRDs, roadmaps, stakeholder alignment. Became UI/UX + PM at ION Mobility. Got CSM certified." },
+  { year: "2021", title: "Product Design", sub: "FIGMA \u00B7 UX \u00B7 SYSTEMS", desc: "Discovered Figma and UX. Moved from visual aesthetics into understanding user behavior, design systems, and product thinking. Joined Aureus Group." },
+  { year: "2020", title: "Web Design", sub: "WHERE IT BEGAN", desc: "Started building client websites. Learned HTML/CSS, visual hierarchy, and the \"fundamentals of how the web works\". Design as craft." }
+];
+
+const CREDENTIALS = [
+  { title: "Certified ScrumMaster\u00AE", org: "SCRUM ALLIANCE", year: "2023" },
+  { title: "Product Management Basics", org: "PENDO", year: "2024" },
+  { title: "Product-Led Certification", org: "PENDO", year: "2024" },
+  { title: "UX Design Certificate", org: "VERTICAL INSTITUTE", year: "2022" },
+  { title: "Bachelor of Business Marketing", org: "SIM UNIVERSITY - RMIT", year: "2016-2020" }
+];
+
+export default function About() {
+  return (
+    <section id="about" style={{ paddingTop: '8rem', paddingBottom: '8rem', color: 'var(--text-primary)' }}>
+      <style>{`
+        .belief-grid {
+          display: grid;
+          grid-template-columns: minmax(40px, auto) 1fr;
+          gap: 2rem;
+          padding: 3rem 0;
+        }
+        @media (max-width: 768px) {
+          .belief-grid {
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+            padding: 2rem 0;
+          }
+          #about p {
+            word-break: break-word; /* Extra safety for small displays */
+          }
+        }
+      `}</style>
+      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 5vw', boxSizing: 'border-box' }}>
+        
+        {/* Intro Section */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginBottom: '8rem' }}>
+          <div style={{ color: 'var(--text-tertiary)', fontSize: '0.65rem', fontWeight: '700', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
+            \u2014 HOME / ABOUT
+          </div>
+          
+          <motion.h1 
+            initial={{ opacity: 0, x: -40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            style={{ 
+              fontSize: 'clamp(3.5rem, 7vw, 6.5rem)', 
+              fontWeight: '700', 
+              lineHeight: '0.95', 
+              letterSpacing: '-0.04em',
+              fontFamily: "'Space Grotesk', sans-serif",
+              maxWidth: '100%',
+              wordBreak: 'break-word'
+            }}
+          >
+            I build what<br/>I design.
+          </motion.h1>
+
+          <p style={{ maxWidth: '600px', fontSize: '1rem', color: 'var(--text-secondary)', lineHeight: '1.6', margin: '1rem 0' }}>
+            Product Designer, Product Manager, and AI Automation Engineer based in Singapore. 
+            I design products from concept, manage them to market, and build the automation 
+            systems that make them run.
+          </p>
+
+          <a href="#contact" style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'var(--text-primary)',
+            color: 'var(--bg-primary)',
+            padding: '0.8rem 1.8rem',
+            borderRadius: '999px',
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontWeight: '600',
+            fontSize: '0.75rem',
+            letterSpacing: '0.1em',
+            textDecoration: 'none',
+            alignSelf: 'flex-start',
+            transition: 'opacity 0.2s'
+          }}>
+            GET IN TOUCH
+          </a>
+        </div>
+
+        {/* Belief System */}
+        <div style={{ marginBottom: '8rem' }}>
+          <div style={{ color: 'var(--text-tertiary)', fontSize: '0.65rem', fontWeight: '700', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '3rem' }}>
+            BELIEF SYSTEM
+          </div>
+          
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {BELIEFS.map((belief, idx) => (
+              <motion.div 
+                key={idx}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: idx * 0.15, ease: "easeOut" }}
+                className="belief-grid"
+                style={{ 
+                  borderTop: idx === 0 ? '1px solid var(--border-color)' : 'none',
+                  borderBottom: '1px solid var(--border-color)'
+                }}
+              >
+                <div style={{ color: 'var(--text-tertiary)', fontSize: '0.75rem', fontWeight: '600', paddingTop: '0.5rem' }}>
+                  {belief.num}
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.75rem', fontWeight: '700', letterSpacing: '-0.02em', marginBottom: '1rem' }}>
+                    {belief.title}
+                  </h3>
+                  <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem', maxWidth: '800px' }}>
+                    {belief.desc}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        {/* Career Journey */}
+        <div style={{ marginBottom: '8rem' }}>
+          <div style={{ color: 'var(--text-tertiary)', fontSize: '0.65rem', fontWeight: '700', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '4rem' }}>
+            CAREER JOURNEY
+          </div>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', borderLeft: '1px solid var(--border-color)', marginLeft: '10px' }}>
+            {JOURNEY.map((item, idx) => (
+              <motion.div 
+                key={idx}
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: idx * 0.15, ease: "easeOut" }}
+                style={{ 
+                  position: 'relative',
+                  paddingLeft: '3rem',
+                  paddingBottom: idx === JOURNEY.length - 1 ? '0' : '4rem'
+                }}
+              >
+                {/* Timeline Dot */}
+                <div style={{
+                  position: 'absolute',
+                  left: '-5px',
+                  top: '0',
+                  width: '9px',
+                  height: '9px',
+                  borderRadius: '50%',
+                  background: 'var(--text-primary)',
+                  boxShadow: '0 0 0 4px var(--bg-primary)'
+                }} />
+
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '1rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '1.2rem', fontWeight: '700', fontFamily: "'Space Grotesk', sans-serif" }}>{item.year}</span>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: '700', margin: 0 }}>{item.title}</h3>
+                  <span style={{ color: 'var(--text-tertiary)', fontSize: '0.6rem', fontWeight: '600', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{item.sub}</span>
+                </div>
+                <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem', maxWidth: '700px' }}>
+                  {item.desc}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        {/* The stack I ship with */}
+        <motion.div 
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          style={{ marginBottom: '8rem' }}
+        >
+          <div style={{ color: 'var(--text-tertiary)', fontSize: '0.65rem', fontWeight: '700', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '1rem' }}>
+            DAILY TOOLS
+          </div>
+          <h2 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: '700', letterSpacing: '-0.03em', marginBottom: '3rem', wordBreak: 'break-word', maxWidth: '100%' }}>
+            The stack I ship with.
+          </h2>
+          {/* Note: In a real environment, replace these generic pills with actual SVG icons. Using text pills here for layout integrity. */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+            {['Figma', 'VS Code', 'React', 'Tailwind', 'Next.js', 'PostgreSQL', 'Webflow', 'Wordpress', 'Framer', 'Claude', 'OpenRouter', 'Retell AI'].map((tool, idx) => (
+              <span key={idx} style={{ 
+                padding: '0.75rem 1.25rem', 
+                border: '1px solid var(--border-color)', 
+                borderRadius: '8px',
+                fontSize: '0.85rem',
+                fontWeight: '600',
+                color: 'var(--text-primary)',
+                background: 'var(--bg-glass)'
+              }}>
+                {tool}
+              </span>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Credentials */}
+        <div>
+          <div style={{ color: 'var(--text-tertiary)', fontSize: '0.65rem', fontWeight: '700', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '3rem' }}>
+            CREDENTIALS
+          </div>
+          
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))', 
+            gap: '1.5rem' 
+          }}>
+            {CREDENTIALS.map((cred, idx) => (
+              <motion.div 
+                key={idx}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: idx * 0.15, ease: "easeOut" }}
+                style={{
+                  padding: '2rem',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '16px',
+                  background: 'var(--bg-glass)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '1rem'
+                }}
+              >
+                <div style={{ color: 'var(--text-tertiary)', fontSize: '0.55rem', fontWeight: '700', letterSpacing: '0.15em' }}>CERTIFICATION</div>
+                <h4 style={{ fontSize: '1.1rem', fontWeight: '700', margin: 0, lineHeight: '1.3' }}>{cred.title}</h4>
+                <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', color: 'var(--text-tertiary)', fontSize: '0.65rem', fontWeight: '600', letterSpacing: '0.1em' }}>
+                  <span>{cred.org}</span>
+                  <span>{cred.year}</span>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+      </div>
+    </section>
+  );
+}

@@ -1,0 +1,168 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Warm Beige Light Mode matching Image Concepts */
+  --bg-primary: #f5f2eb;
+  --bg-secondary: #ede9e0;
+  --bg-tertiary: #dfdacb;
+  --bg-glass: rgba(245, 242, 235, 0.75);
+  --text-primary: #111111;
+  --text-secondary: #5a5a5a;
+  --text-tertiary: #8f8f8f;
+  --border-color: #e5e0d3;
+  --border-glass: rgba(0, 0, 0, 0.06);
+  --accent-glow: rgba(0,0,0,0.03);
+  --theme-gradient: radial-gradient(circle at top right, rgba(255,255,255,0.6) 0%, transparent 60%), radial-gradient(circle at bottom left, rgba(230,225,215,0.4) 0%, transparent 60%);
+}
+
+.dark-theme {
+  /* Blended Dark Mode avoiding solid plain black */
+  --bg-primary: #100f0e;
+  --bg-secondary: #171514;
+  --bg-tertiary: #201e1d;
+  --bg-glass: rgba(16, 15, 14, 0.8);
+  --text-primary: #f5f2eb;
+  --text-secondary: #a39e9c;
+  --text-tertiary: #716c6a;
+  --border-color: #272422;
+  --border-glass: rgba(255, 255, 255, 0.05);
+  --accent-glow: rgba(255,255,255,0.02);
+  --theme-gradient: radial-gradient(circle at top right, rgba(255,255,255,0.03) 0%, transparent 50%), radial-gradient(circle at bottom left, rgba(255, 240, 220, 0.02) 0%, transparent 60%);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+  background-color: var(--bg-primary);
+  background-image: var(--theme-gradient);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.4s ease, color 0.4s ease;
+  overflow-x: clip;
+  overflow-y: auto;
+}
+
+#root {
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
+}
+
+/* Typography styles matching the premium aesthetic */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 500;
+  line-height: 1.2;
+  margin: 0;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+h1 { font-size: 3.5rem; letter-spacing: -0.04em; }
+h2 { font-size: 2.5rem; letter-spacing: -0.03em; }
+h3 { font-size: 1.75rem; letter-spacing: -0.02em; }
+
+p {
+  color: var(--text-secondary);
+  font-size: 1.125rem;
+  font-weight: 300;
+}
+
+/* Layout Utilities */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.section {
+  padding: 6rem 0;
+  position: relative;
+}
+
+/* UI Elements */
+.glass-panel {
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  border-radius: 24px;
+}
+
+.button-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  padding: 0.875rem 1.5rem;
+  border-radius: 999px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 500;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  text-decoration: none;
+}
+
+.button-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+.button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--text-primary);
+  padding: 0.875rem 1.5rem;
+  border-radius: 999px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 500;
+  font-size: 1rem;
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.button-secondary:hover {
+  background: var(--bg-secondary);
+  border-color: var(--text-secondary);
+}
+
+/* Utility Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  h1 { font-size: 2.5rem; }
+  h2 { font-size: 2rem; }
+  .section { padding: 4rem 0; }
+  .container { padding: 0 1.5rem; }
+}
