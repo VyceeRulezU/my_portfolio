@@ -227,7 +227,7 @@ export default function Hero({ openCV }) {
               fontSize: 'clamp(2.5rem, 8vw, 7rem)', 
               fontWeight: '700', 
               lineHeight: '1.1', 
-              letterSpacing: '-0.001em',
+              letterSpacing: '-0.05em',
               textTransform: 'uppercase',
               fontFamily: "'Space Grotesk', sans-serif",
               wordBreak: 'break-word',
