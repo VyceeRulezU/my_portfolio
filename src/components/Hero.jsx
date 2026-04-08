@@ -143,7 +143,7 @@ export default function Hero({ openCV }) {
         maxWidth: '1800px', 
         margin: '0 auto', 
         width: '100%', 
-        marginBottom: '10rem',
+        marginBottom: '4rem',
         perspective: '1000px' // Enable 3D space
       }}>
         <motion.div
@@ -226,8 +226,8 @@ export default function Hero({ openCV }) {
               margin: 0, 
               fontSize: 'clamp(2.5rem, 8vw, 7rem)', 
               fontWeight: '700', 
-              lineHeight: '0.85', 
-              letterSpacing: '-0.05em',
+              lineHeight: '1.1', 
+              letterSpacing: '-0.001em',
               textTransform: 'uppercase',
               fontFamily: "'Space Grotesk', sans-serif",
               wordBreak: 'break-word',
@@ -251,7 +251,7 @@ export default function Hero({ openCV }) {
             maxWidth: '650px', 
             fontSize: '1.1rem', 
             color: 'var(--text-secondary)', 
-            lineHeight: '1.6',
+            lineHeight: '1.8',
             fontWeight: '400'
           }}>
             I design and build intuitive digital experiences with 6+ years in SaaS, fintech, and EdTech. 
