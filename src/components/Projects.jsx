@@ -92,7 +92,7 @@ export default function Projects() {
                 fontFamily: "'Space Grotesk', sans-serif"
               }}
             >
-              Case<br/>Studies
+              Recent<br/>Projects
             </motion.h2>
           </div>
 
