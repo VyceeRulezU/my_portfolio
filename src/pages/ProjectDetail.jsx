@@ -84,7 +84,7 @@ export default function ProjectDetail() {
           transition={{ duration: 0.4 }}
           style={{ marginBottom: '4rem' }}
         >
-           <Link to="/" style={{ 
+           <Link to="/#projects" style={{ 
              display: 'inline-flex', 
              alignItems: 'center', 
              gap: '0.5rem',
