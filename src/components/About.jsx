@@ -27,11 +27,10 @@ const JOURNEY = [
 ];
 
 const CREDENTIALS = [
-  { title: "Certified ScrumMaster®", org: "SCRUM ALLIANCE", year: "2023" },
-  { title: "Product Management Basics", org: "PENDO", year: "2024" },
-  { title: "Product-Led Certification", org: "PENDO", year: "2024" },
-  { title: "UX Design Certificate", org: "VERTICAL INSTITUTE", year: "2022" },
-  { title: "Bachelor of Business Marketing", org: "SIM UNIVERSITY - RMIT", year: "2016-2020" }
+  { title: "UX UI Design Certificate", org: "DEV AND DESIGN", year: "2023" },
+  { title: "JavaScript", org: "DEV AND DESIGN", year: "2024" },
+  { title: "Frontend Engineering", org: "DEV AND DESIGN", year: "2025" },
+  { title: "Google UX Design Professional", org: "COURSERA", year: "2021" }
 ];
 
 export default function About() {

@@ -27,9 +27,9 @@ const JOURNEY = [
 ];
 
 const CREDENTIALS = [
-  { title: "UX Design Certificate", org: "VERTICAL INSTITUTE", year: "2022" },
-  { title: "Product Management Basics", org: "PENDO", year: "2024" },
-  { title: "Certified ScrumMaster®", org: "SCRUM ALLIANCE", year: "2023" },
+  { title: "UX UI Design Certificate", org: "DEV AND DESIGN", year: "2023" },
+  { title: "JavaScript", org: "DEV AND DESIGN", year: "2024" },
+  { title: "Frontend Engineering", org: "DEV AND DESIGN", year: "2025" },
   { title: "Google UX Design Professional", org: "COURSERA", year: "2021" }
 ];
 
