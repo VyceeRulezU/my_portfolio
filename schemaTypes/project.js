@@ -22,6 +22,21 @@ export default defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: 'isPrivate',
+      title: 'Private Project (Gated)',
+      type: 'boolean',
+      initialValue: false,
+      description: 'If enabled, users will see a lock screen and must contact you for access.',
+    }),
+    defineField({
+      name: 'password',
+      title: 'Case Study Password',
+      type: 'string',
+      hidden: ({document}) => !document?.isPrivate,
+      description: 'Optional: If you want to give a password to specific people.',
+    }),
+
+    defineField({
       name: 'img',
       title: 'Main Image (Thumbnail)',
       type: 'image',

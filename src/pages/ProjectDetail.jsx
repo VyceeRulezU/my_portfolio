@@ -4,9 +4,12 @@ import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAssetUrl } from '../utils/assetHelper';
 import { ALL_PROJECTS } from '../data/projectsData';
-import { ChevronLeft, ChevronRight, X, ArrowLeft } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, ArrowLeft, Lock, Mail } from 'lucide-react';
 import { PortableText } from '@portabletext/react';
 import { client, urlFor } from '../utils/sanity';
+
+const GATED_EMAIL = "ironaliv@gmail.com";
+
 
 const GALLERY_API = import.meta.env.VITE_GALLERY_API_URL;
 
@@ -15,9 +18,24 @@ export default function ProjectDetail() {
   const [project, setProject] = useState(null);
   const [selectedImgIdx, setSelectedImgIdx] = useState(null);
   const [galleryImages, setGalleryImages] = useState([]);
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  const [passwordError, setPasswordError] = useState(false);
+
   const [galleryLoading, setGalleryLoading] = useState(true);
 
+  const handlePasswordSubmit = (e) => {
+    e.preventDefault();
+    if (project?.password && passwordInput === project.password) {
+      setIsUnlocked(true);
+      setPasswordError(false);
+    } else {
+      setPasswordError(true);
+    }
+  };
+
   const nextImg = useCallback(() => {
+
     setSelectedImgIdx(prev => prev !== null && galleryImages.length > 0
       ? (prev + 1) % galleryImages.length
       : prev
@@ -35,29 +53,41 @@ export default function ProjectDetail() {
     const fetchProject = async () => {
       try {
         const sanityData = await client.fetch(`*[_type == "project" && slug.current == $slug][0]`, { slug: id });
+        console.log("Sanity Project Data:", sanityData);
+        
         if (sanityData) {
           const formatted = {
             ...sanityData,
             id: sanityData.slug.current,
+            isPrivate: sanityData.isPrivate || false,
+            password: sanityData.password || null,
             img: sanityData.img?.asset ? urlFor(sanityData.img).url() : null,
             processImages: sanityData.processImages?.filter(img => img?.asset).map(img => urlFor(img).url()) || [],
             problemImages: sanityData.problemImages?.filter(img => img?.asset).map(img => urlFor(img).url()) || [],
             solutionImages: sanityData.solutionImages?.filter(img => img?.asset).map(img => urlFor(img).url()) || [],
             overviewImages: sanityData.overviewImages?.filter(img => img?.asset).map(img => urlFor(img).url()) || [],
             impactImages: sanityData.impactImages?.filter(img => img?.asset).map(img => urlFor(img).url()) || []
-
           };
           setProject(formatted);
           setGalleryImages(formatted.processImages);
           setGalleryLoading(false);
           return;
         }
+
       } catch (err) {
         console.error('Sanity detail fetch error:', err);
       }
-
+      // 2. Fallback to local
       const found = ALL_PROJECTS.find(p => p.id === id);
-      setProject(found);
+      if (found) {
+        // Force salongrid to be private if it's falling back to local
+        if (id === 'salongrid') {
+          found.isPrivate = true;
+          found.password = "victor"; // Default fallback password
+        }
+        setProject(found);
+      }
+
       
       if (id && GALLERY_API) {
         setGalleryLoading(true);
@@ -169,10 +199,54 @@ export default function ProjectDetail() {
            )}
         </div>
 
-        {/* Hero Image */}
-        <div style={{ width: '100%', marginBottom: '10rem', borderRadius: '32px', overflow: 'hidden', background: 'var(--border-color)' }}>
-           <img src={getAssetUrl(project.img)} alt={project.title} style={{ width: '100%', height: 'auto', display: 'block' }} />
-        </div>
+
+        {/* Gated Access Lock Screen */}
+        {project.isPrivate && !isUnlocked ? (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            style={{ 
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', 
+              padding: '8rem 2rem', background: 'var(--bg-secondary)', borderRadius: '32px', 
+              border: '1px solid var(--border-color)', textAlign: 'center', margin: '4rem 0' 
+            }}
+          >
+            <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '2rem', border: '1px solid var(--border-color)' }}>
+              <Lock size={32} color="var(--text-primary)" />
+            </div>
+            <h2 style={{ fontSize: '2.5rem', fontWeight: '700', marginBottom: '1rem', fontFamily: "'Space Grotesk', sans-serif" }}>This Case Study is Private</h2>
+            <p style={{ color: 'var(--text-secondary)', maxWidth: '500px', marginBottom: '3rem', fontSize: '1.1rem' }}>
+              Due to the sensitive nature of this project, access is restricted. Please reach out to me for the password or to request a walkthrough.
+            </p>
+
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+              <a href={`mailto:${GATED_EMAIL}`} className="live-btn" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <Mail size={16} /> Contact for Access
+              </a>
+              
+              {project.password && (
+                <form onSubmit={handlePasswordSubmit} style={{ display: 'flex', gap: '0.5rem' }}>
+                  <input 
+                    type="password" 
+                    placeholder="Enter Password" 
+                    value={passwordInput}
+                    onChange={(e) => setPasswordInput(e.target.value)}
+                    style={{ 
+                      background: 'var(--bg-primary)', border: `1px solid ${passwordError ? '#ff4d4d' : 'var(--border-color)'}`, 
+                      padding: '0 1.5rem', borderRadius: '99px', fontSize: '0.8rem', color: 'var(--text-primary)', outline: 'none'
+                    }}
+                  />
+                  <button type="submit" className="live-btn" style={{ background: 'var(--text-secondary)' }}>Unlock</button>
+                </form>
+              )}
+            </div>
+            {passwordError && <div style={{ color: '#ff4d4d', fontSize: '0.7rem', marginTop: '1rem', fontWeight: '600' }}>Incorrect password. Please try again.</div>}
+          </motion.div>
+        ) : (
+          <>
+            {/* Hero Image */}
+            <div style={{ width: '100%', marginBottom: '10rem', borderRadius: '32px', overflow: 'hidden', background: 'var(--border-color)' }}>
+               <img src={getAssetUrl(project.img)} alt={project.title} style={{ width: '100%', height: 'auto', display: 'block' }} />
+            </div>
 
         <div className="case-study-layout">
           {/* Main Content */}
@@ -252,7 +326,10 @@ export default function ProjectDetail() {
               ))}
             </div>
           </aside>
-        </div>
+          </div>
+        </>
+      )}
+
 
         {/* Lightbox - keeping existing functionality */}
         {createPortal(
