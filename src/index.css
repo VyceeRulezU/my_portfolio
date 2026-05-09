@@ -54,20 +54,22 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.4s ease, color 0.4s ease;
-  overflow-x: clip;
+  overflow-x: visible;
   overflow-y: auto;
   caret-color: transparent;
 }
+
 
 body:active {
   cursor: none !important;
 }
 
 #root {
-  overflow-x: hidden;
+  overflow: visible;
   width: 100%;
   position: relative;
 }
+
 
 /* Typography styles matching the premium aesthetic */
 h1, h2, h3, h4, h5, h6 {

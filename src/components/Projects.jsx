@@ -22,7 +22,8 @@ export default function Projects() {
         const formatted = data.map(p => ({
           ...p,
           id: p.slug?.current || p._id,
-          img: p.img ? urlFor(p.img).url() : p.img,
+          img: p.img?.asset ? urlFor(p.img).url() : p.img,
+
           // Map other fields if necessary
         }));
         setSanityProjects(formatted);

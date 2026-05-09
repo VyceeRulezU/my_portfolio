@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getAssetUrl } from '../utils/assetHelper';
 import { ALL_PROJECTS } from '../data/projectsData';
 import { ChevronLeft, ChevronRight, X, ArrowLeft } from 'lucide-react';
+import { PortableText } from '@portabletext/react';
 import { client, urlFor } from '../utils/sanity';
 
 const GALLERY_API = import.meta.env.VITE_GALLERY_API_URL;
@@ -32,15 +33,19 @@ export default function ProjectDetail() {
 
   useEffect(() => {
     const fetchProject = async () => {
-      // 1. Try Sanity first
       try {
         const sanityData = await client.fetch(`*[_type == "project" && slug.current == $slug][0]`, { slug: id });
         if (sanityData) {
           const formatted = {
             ...sanityData,
             id: sanityData.slug.current,
-            img: sanityData.img ? urlFor(sanityData.img).url() : null,
-            processImages: sanityData.processImages?.map(img => urlFor(img).url()) || []
+            img: sanityData.img?.asset ? urlFor(sanityData.img).url() : null,
+            processImages: sanityData.processImages?.filter(img => img?.asset).map(img => urlFor(img).url()) || [],
+            problemImages: sanityData.problemImages?.filter(img => img?.asset).map(img => urlFor(img).url()) || [],
+            solutionImages: sanityData.solutionImages?.filter(img => img?.asset).map(img => urlFor(img).url()) || [],
+            overviewImages: sanityData.overviewImages?.filter(img => img?.asset).map(img => urlFor(img).url()) || [],
+            impactImages: sanityData.impactImages?.filter(img => img?.asset).map(img => urlFor(img).url()) || []
+
           };
           setProject(formatted);
           setGalleryImages(formatted.processImages);
@@ -51,7 +56,6 @@ export default function ProjectDetail() {
         console.error('Sanity detail fetch error:', err);
       }
 
-      // 2. Fallback to local
       const found = ALL_PROJECTS.find(p => p.id === id);
       setProject(found);
       
@@ -75,7 +79,6 @@ export default function ProjectDetail() {
     window.scrollTo(0, 0);
   }, [id]);
 
-
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'ArrowRight') nextImg();
@@ -92,266 +95,175 @@ export default function ProjectDetail() {
     </div>
   );
 
+  const SECTIONS = [
+    { id: 'snapshot', label: 'Project Snapshot' },
+    { id: 'overview', label: 'Project Overview', subtitle: 'Context & Brief' },
+    { id: 'problem', label: 'The Problem', subtitle: 'Problem Space' },
+    { id: 'solution', label: 'The Solution', subtitle: 'Design Approach' },
+    { id: 'impact', label: 'Results & Impact', subtitle: 'Outcomes & Impact' },
+    { id: 'gallery', label: 'Process Gallery', subtitle: 'Process & Artifacts' }
+  ];
+
   return (
     <section className="page-container" style={{ paddingTop: '12rem', paddingBottom: '8rem', color: 'var(--text-primary)' }}>
       <style>{`
-        @media (max-width: 768px) {
-          .case-study-grid { grid-template-columns: 1fr !important; gap: 3rem !important; }
+        .case-study-layout { display: flex; gap: 8rem; position: relative; align-items: flex-start; }
+        .case-study-content { flex: 1; min-width: 0; }
+        .case-study-sidebar { width: 320px; flex-shrink: 0; position: sticky; top: 10rem; height: max-content; }
+        .sticky-toc { display: flex; flex-direction: column; gap: 1.5rem; }
+        .toc-link { color: var(--text-tertiary); text-decoration: none; transition: color 0.2s; display: block; }
+        .toc-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; display: block; margin-bottom: 0.2rem; }
+        .toc-subtitle { font-size: 0.65rem; opacity: 0.5; font-weight: 400; display: block; }
+        .toc-link:hover, .toc-link.active { color: var(--text-primary); }
+        .section-block { margin-bottom: 10rem; scroll-margin-top: 10rem; }
+        .section-images { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-top: 3rem; }
+        .section-image-card { border-radius: 24px; overflow: hidden; background: var(--bg-secondary); border: 1px solid var(--border-color); }
+        .section-image-card img { width: 100%; height: auto; display: block; }
+        
+        .project-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 2rem; margin-bottom: 6rem; flex-wrap: wrap; }
+        .live-btn { background: var(--text-primary); color: var(--bg-primary); padding: 1rem 2rem; border-radius: 99px; text-decoration: none; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; transition: all 0.3s; }
+        .live-btn:hover { opacity: 0.9; transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+
+        .snapshot-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2.5rem; padding: 3rem 0; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); margin-bottom: 6rem; }
+        
+        .section-text-content ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 1.5rem; }
+        .section-text-content ol { list-style-type: decimal; margin-left: 1.5rem; margin-bottom: 1.5rem; }
+        .section-text-content li { margin-bottom: 0.5rem; }
+
+        @media (max-width: 1200px) {
+          .case-study-layout { flex-direction: column; gap: 4rem; }
+          .case-study-sidebar { display: none; }
         }
       `}</style>
+
       <div style={{ maxWidth: '1800px', margin: '0 auto', padding: '0 5vw' }}>
         
-        {/* Back Link */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          style={{ marginBottom: '4rem' }}
-        >
-           <Link to="/#projects" style={{ 
-             display: 'inline-flex', 
-             alignItems: 'center', 
-             gap: '0.5rem',
-             color: 'var(--text-tertiary)', 
-             fontSize: '0.65rem', 
-             fontWeight: '700', 
-             letterSpacing: '0.15em', 
-             textTransform: 'uppercase', 
-             textDecoration: 'none' 
-           }}>
+        {/* Navigation */}
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: '4rem' }}>
+           <Link to="/#projects" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-tertiary)', fontSize: '0.65rem', fontWeight: '700', letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none' }}>
               <ArrowLeft size={14} /> BACK TO WORK
            </Link>
         </motion.div>
 
-        {/* Title & Headline */}
-        <div style={{ marginBottom: '6rem' }}>
-           <div style={{ color: 'var(--text-tertiary)', fontSize: '0.65rem', fontWeight: '700', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '1.5rem' }}>
-              / CASE STUDY / {project.title}
+        {/* Header with Title and Button */}
+        <div className="project-header">
+           <div style={{ flex: 1 }}>
+              <div style={{ color: 'var(--text-tertiary)', fontSize: '0.65rem', fontWeight: '700', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '1.5rem' }}>
+                 / CASE STUDY / {project.title}
+              </div>
+              <motion.h1 
+                initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}
+                style={{ fontSize: 'clamp(3rem, 7vw, 6rem)', fontWeight: '700', lineHeight: '0.95', letterSpacing: '-0.04em', fontFamily: "'Space Grotesk', sans-serif" }}
+              >
+                 {project.headline}
+              </motion.h1>
            </div>
-           <motion.h1 
-             initial={{ opacity: 0, y: 30 }}
-             animate={{ opacity: 1, y: 0 }}
-             transition={{ duration: 0.8 }}
-             style={{ 
-               fontSize: 'clamp(3rem, 7vw, 6rem)', 
-               fontWeight: '700', 
-               lineHeight: '0.95', 
-               letterSpacing: '-0.04em',
-               fontFamily: "'Space Grotesk', sans-serif",
-               maxWidth: '1000px'
-             }}
-           >
-              {project.headline}
-           </motion.h1>
-        </div>
-
-        {/* Metadata Grid */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-          gap: '2.5rem', 
-          padding: '3rem 0', 
-          borderTop: '1px solid var(--border-color)', 
-          borderBottom: '1px solid var(--border-color)',
-          marginBottom: '6rem' 
-        }}>
-           <div>
-              <div style={{ fontSize: '0.6rem', fontWeight: '700', color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '0.1em' }}>ROLE</div>
-              <div style={{ fontWeight: '600', fontSize: '0.9rem' }}>{project.role}</div>
-           </div>
-           <div>
-              <div style={{ fontSize: '0.6rem', fontWeight: '700', color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '0.1em' }}>TIMELINE</div>
-              <div style={{ fontWeight: '600', fontSize: '0.9rem' }}>{project.year !== "2025" ? project.year : "Ongoing"}</div>
-           </div>
+           
            {project.url && project.url !== "#" && (
-             <div>
-                <div style={{ fontSize: '0.6rem', fontWeight: '700', color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '0.1em' }}>
-                  {project.type === 'case' || project.type === 'other' ? 'PROTOTYPE' : 'LIVE PROJECT'}
-                </div>
-                <div><a href={project.url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-primary)', fontWeight: '600', fontSize: '0.9rem', textDecoration: 'none', borderBottom: '1px solid currentColor' }}>
-                  {project.type === 'case' || project.type === 'other' ? 'View Prototype ↗' : 'Visit Website ↗'}
-                </a></div>
-             </div>
+             <motion.a 
+               href={project.url} target="_blank" rel="noopener noreferrer" className="live-btn"
+               initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.4 }}
+             >
+                View Live Project ↗
+             </motion.a>
            )}
         </div>
 
-        {/* Main Hero Image */}
-        <div style={{ width: '100%', marginBottom: '8rem', borderRadius: '32px', overflow: 'hidden', background: 'var(--border-color)' }}>
+        {/* Hero Image */}
+        <div style={{ width: '100%', marginBottom: '10rem', borderRadius: '32px', overflow: 'hidden', background: 'var(--border-color)' }}>
            <img src={getAssetUrl(project.img)} alt={project.title} style={{ width: '100%', height: 'auto', display: 'block' }} />
         </div>
 
-        {/* Case Study Content Sections */}
-        <motion.div
-          className="case-study-grid"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8rem', marginBottom: '10rem' }}
-        >
-           <div style={{ display: 'flex', flexDirection: 'column', gap: '6rem' }}>
-              <div>
-                 <h2 style={{ fontSize: '1.75rem', fontWeight: '700', marginBottom: '2rem', fontFamily: "'Space Grotesk', sans-serif" }}>The Problem</h2>
-                 <p style={{ fontSize: '1.05rem', color: 'var(--text-secondary)', lineHeight: '1.7' }}>{project.problem}</p>
-              </div>
-              <div>
-                 <h2 style={{ fontSize: '1.75rem', fontWeight: '700', marginBottom: '1.5rem', fontFamily: "'Space Grotesk', sans-serif" }}>The Solution</h2>
-                 <p style={{ fontSize: '1.05rem', color: 'var(--text-secondary)', lineHeight: '1.7' }}>{project.solution}</p>
-              </div>
-           </div>
-           <div style={{ display: 'flex', flexDirection: 'column', gap: '6rem' }}>
-              <div>
-                 <h2 style={{ fontSize: '1.75rem', fontWeight: '700', marginBottom: '1.5rem', fontFamily: "'Space Grotesk', sans-serif" }}>Project Overview</h2>
-                 <p style={{ fontSize: '1.05rem', color: 'var(--text-secondary)', lineHeight: '1.7' }}>{project.overview}</p>
-              </div>
-              <div>
-                 <h2 style={{ fontSize: '1.75rem', fontWeight: '700', marginBottom: '1.5rem', fontFamily: "'Space Grotesk', sans-serif" }}>Results & Impact</h2>
-                 <p style={{ fontSize: '1.05rem', color: 'var(--text-secondary)', lineHeight: '1.7' }}>{project.impact}</p>
-               </div>
-            </div>
-         </motion.div>
+        <div className="case-study-layout">
+          {/* Main Content */}
+          <div className="case-study-content">
+            {SECTIONS.map((sec) => {
+              if (sec.id === 'snapshot') return (
+                <div key={sec.id} id={sec.id} className="snapshot-grid">
+                  <div>
+                    <div style={{ fontSize: '0.6rem', fontWeight: '700', color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '0.1em' }}>ROLE</div>
+                    <div style={{ fontWeight: '600', fontSize: '0.9rem' }}>{project.role}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.6rem', fontWeight: '700', color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '0.1em' }}>YEAR</div>
+                    <div style={{ fontWeight: '600', fontSize: '0.9rem' }}>{project.year}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.6rem', fontWeight: '700', color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '0.1em' }}>TYPE</div>
+                    <div style={{ fontWeight: '600', fontSize: '0.9rem', textTransform: 'capitalize' }}>{project.type === 'case' ? 'Case Study' : project.type}</div>
+                  </div>
+                </div>
+              );
 
+              const content = project[sec.id];
+              const images = project[`${sec.id}Images`];
+              
+              if (sec.id === 'gallery') return (
+                <div key={sec.id} id={sec.id} className="section-block">
+                  <h2 style={{ fontSize: '2.5rem', fontWeight: '700', marginBottom: '1rem', fontFamily: "'Space Grotesk', sans-serif" }}>{sec.label}</h2>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '3rem', letterSpacing: '0.05em' }}>{sec.subtitle}</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                    {galleryImages.map((img, idx) => (
+                      <motion.div key={idx} whileHover={{ scale: 1.02 }} onClick={() => setSelectedImgIdx(idx)} style={{ borderRadius: '16px', overflow: 'hidden', cursor: 'pointer', aspectRatio: '16/9', background: 'var(--bg-secondary)' }}>
+                        <img src={img} alt={`Process ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              );
 
-        {/* Process Gallery Section */}
-        {galleryLoading ? (
-          <div style={{ marginBottom: '8rem', display: 'flex', gap: '1.5rem' }}>
-            {[1,2,3].map(i => (
-              <div key={i} style={{ flex: 1, height: '220px', borderRadius: '16px', background: 'var(--bg-secondary)', animation: 'pulse 1.5s ease infinite' }} />
-            ))}
+              return (
+                <div key={sec.id} id={sec.id} className="section-block">
+                  <h2 style={{ fontSize: '2.5rem', fontWeight: '700', marginBottom: '1rem', fontFamily: "'Space Grotesk', sans-serif" }}>{sec.label}</h2>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '2.5rem', letterSpacing: '0.05em' }}>{sec.subtitle}</div>
+                  
+                  <div className="section-text-content" style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', lineHeight: '1.8', maxWidth: '900px' }}>
+                    {Array.isArray(content) ? (
+                      <PortableText value={content} />
+                    ) : (
+                      <p>{content}</p>
+                    )}
+                  </div>
+                  
+                  {images && images.length > 0 && (
+                    <div className="section-images">
+                      {images.map((img, idx) => (
+                        <div key={idx} className="section-image-card">
+                          <img src={img} alt={`${sec.label} image ${idx + 1}`} />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+
+            })}
           </div>
-        ) : galleryImages.length > 0 && (
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            style={{ marginBottom: '8rem' }}
-          >
-            <h2 style={{ fontSize: '1.75rem', fontWeight: '700', marginBottom: '3rem', fontFamily: "'Space Grotesk', sans-serif" }}>Process &amp; Iterations</h2>
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', 
-              gap: '1.5rem' 
-            }}>
-              {galleryImages.map((img, idx) => (
-                <motion.div 
-                  key={idx}
-                  whileHover={{ scale: 1.02 }}
-                  onClick={() => setSelectedImgIdx(idx)}
-                  style={{ 
-                    borderRadius: '16px', 
-                    overflow: 'hidden', 
-                    cursor: 'pointer',
-                    aspectRatio: '16/9',
-                    background: 'var(--bg-secondary)'
-                  }}
-                >
-                  <img 
-                    src={img}
-                    alt={`Process ${idx + 1}`} 
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                  />
-                </motion.div>
+
+          {/* Sidebar TOC */}
+          <aside className="case-study-sidebar">
+            <div className="sticky-toc">
+              <div style={{ fontSize: '0.6rem', fontWeight: '800', color: 'var(--text-tertiary)', letterSpacing: '0.2em', marginBottom: '1.5rem' }}>CONTENTS</div>
+              {SECTIONS.map(sec => (
+                <a key={sec.id} href={`#${sec.id}`} className="toc-link">
+                  <span className="toc-label">{sec.label}</span>
+                  {sec.subtitle && <span className="toc-subtitle">{sec.subtitle}</span>}
+                </a>
               ))}
             </div>
-          </motion.div>
-        )}
+          </aside>
+        </div>
 
-        {/* Lightbox / Modal — rendered via portal to escape stacking contexts */}
+        {/* Lightbox - keeping existing functionality */}
         {createPortal(
           <AnimatePresence>
             {selectedImgIdx !== null && galleryImages.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                style={{
-                  position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-                  background: 'rgba(0, 0, 0, 0.88)',
-                  backdropFilter: 'blur(16px)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  zIndex: 9999,
-                }}
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0, 0, 0, 0.88)', backdropFilter: 'blur(16px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}
                 onClick={() => setSelectedImgIdx(null)}
               >
-                {/* Top Controls */}
-                <div style={{
-                  position: 'absolute', top: '1.5rem', left: '1.5rem', right: '1.5rem',
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  color: 'white', zIndex: 10000
-                }}>
-                  <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: '0.85rem', fontWeight: '500', opacity: 0.7, letterSpacing: '0.05em' }}>
-                    {String(selectedImgIdx + 1).padStart(2, '0')} / {String(galleryImages.length).padStart(2, '0')}
-                  </div>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setSelectedImgIdx(null); }}
-                    style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)', color: 'white', cursor: 'pointer', borderRadius: '50%', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', flexShrink: 0 }}
-                    onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.25)'}
-                    onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                  >
-                    <X size={18} />
-                  </button>
-                </div>
-
-                {/* Prev Arrow */}
-                <button
-                  onClick={(e) => { e.stopPropagation(); prevImg(); }}
-                  style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', color: 'white', cursor: 'pointer', borderRadius: '50%', width: '50px', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', zIndex: 10000 }}
-                  onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
-                  onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-                ><ChevronLeft size={22} /></button>
-
-                {/* Next Arrow */}
-                <button
-                  onClick={(e) => { e.stopPropagation(); nextImg(); }}
-                  style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', color: 'white', cursor: 'pointer', borderRadius: '50%', width: '50px', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', zIndex: 10000 }}
-                  onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
-                  onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-                ><ChevronRight size={22} /></button>
-
-                {/* Image */}
-                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '5rem 5rem 8rem' }}>
-                  <AnimatePresence mode="wait">
-                    <motion.img
-                      key={selectedImgIdx}
-                      initial={{ x: 30, opacity: 0, scale: 0.97 }}
-                      animate={{ x: 0, opacity: 1, scale: 1 }}
-                      exit={{ x: -30, opacity: 0, scale: 0.97 }}
-                      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                      src={galleryImages[selectedImgIdx]}
-                      style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', borderRadius: '12px', boxShadow: '0 30px 80px rgba(0,0,0,0.6)' }}
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  </AnimatePresence>
-                </div>
-
-                {/* Thumbnail Strip */}
-                <div
-                  style={{
-                    position: 'absolute', bottom: '1.5rem', left: '50%', transform: 'translateX(-50%)',
-                    display: 'flex', gap: '0.6rem', padding: '0.6rem',
-                    background: 'rgba(255,255,255,0.06)', borderRadius: '16px',
-                    backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)',
-                    zIndex: 10000, maxWidth: '80vw', overflowX: 'auto'
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {galleryImages.map((img, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => setSelectedImgIdx(idx)}
-                      style={{
-                        width: '46px', height: '46px', borderRadius: '8px', overflow: 'hidden',
-                        cursor: 'pointer', flexShrink: 0,
-                        border: selectedImgIdx === idx ? '2px solid white' : '2px solid transparent',
-                        opacity: selectedImgIdx === idx ? 1 : 0.45,
-                        transition: 'all 0.2s'
-                      }}
-                    >
-                      <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    </div>
-                  ))}
-                </div>
+                <button onClick={(e) => { e.stopPropagation(); setSelectedImgIdx(null); }} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '50%', width: '44px', height: '44px', cursor: 'pointer' }}><X size={18} /></button>
+                <img src={galleryImages[selectedImgIdx]} style={{ maxHeight: '85%', maxWidth: '85%', objectFit: 'contain', borderRadius: '12px' }} />
               </motion.div>
             )}
           </AnimatePresence>,
@@ -361,3 +273,4 @@ export default function ProjectDetail() {
     </section>
   );
 }
+

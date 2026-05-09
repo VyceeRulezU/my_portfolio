@@ -1,14 +1,19 @@
 import { createClient } from '@sanity/client';
-import imageUrlBuilder from '@sanity/image-url';
+import { createImageUrlBuilder } from '@sanity/image-url';
+
+
 
 export const client = createClient({
-  projectId: import.meta.env.VITE_SANITY_PROJECT_ID,
-  dataset: import.meta.env.VITE_SANITY_DATASET || 'production',
-  useCdn: true, // `false` if you want to ensure fresh data
+  projectId: '9hecsvz8',
+  dataset: 'production',
+  useCdn: false, // set to false for real-time updates
   apiVersion: '2024-05-09', // use current date
 });
 
-const builder = imageUrlBuilder(client);
+
+
+const builder = createImageUrlBuilder(client);
+
 
 export function urlFor(source) {
   return builder.image(source);

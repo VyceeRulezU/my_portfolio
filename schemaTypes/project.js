@@ -22,6 +22,15 @@ export default defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: 'img',
+      title: 'Main Image (Thumbnail)',
+      type: 'image',
+      options: {
+        hotspot: true,
+      },
+    }),
+
+    defineField({
       name: 'num',
       title: 'Project Number',
       type: 'string',
@@ -61,39 +70,74 @@ export default defineType({
       type: 'string',
     }),
     defineField({
+      name: 'processImages',
+      title: 'Process Images (Gallery)',
+      type: 'array',
+      of: [{type: 'image', options: {hotspot: true}}],
+      options: {
+        layout: 'grid',
+      },
+    }),
+
+
+
+    defineField({
+      name: 'overview',
+      title: 'Project Overview - Context & Brief',
+      type: 'array',
+      of: [{type: 'block'}],
+    }),
+    defineField({
+      name: 'overviewImages',
+      title: 'Overview Section Images',
+      type: 'array',
+      of: [{type: 'image', options: {hotspot: true}}],
+      options: { layout: 'grid' },
+    }),
+
+    defineField({
       name: 'problem',
-      title: 'Problem',
-      type: 'text',
+      title: 'The Problem - Problem Space',
+      type: 'array',
+      of: [{type: 'block'}],
+    }),
+    defineField({
+      name: 'problemImages',
+      title: 'Problem Section Images',
+      type: 'array',
+      of: [{type: 'image', options: {hotspot: true}}],
+      options: { layout: 'grid' },
     }),
     defineField({
       name: 'solution',
-      title: 'Solution',
-      type: 'text',
+      title: 'The Solution - Design Approach',
+      type: 'array',
+      of: [{type: 'block'}],
     }),
     defineField({
-      name: 'overview',
-      title: 'Overview',
-      type: 'text',
+      name: 'solutionImages',
+      title: 'Solution Section Images',
+      type: 'array',
+      of: [{type: 'image', options: {hotspot: true}}],
+      options: { layout: 'grid' },
     }),
     defineField({
       name: 'impact',
-      title: 'Impact',
-      type: 'text',
+      title: 'Results & Impact - Outcomes & Impact',
+      type: 'array',
+      of: [{type: 'block'}],
     }),
     defineField({
-      name: 'img',
-      title: 'Main Image',
-      type: 'image',
-      options: {
-        hotspot: true,
-      },
-    }),
-    defineField({
-      name: 'processImages',
-      title: 'Process Images',
+      name: 'impactImages',
+      title: 'Impact Section Images',
       type: 'array',
       of: [{type: 'image', options: {hotspot: true}}],
+      options: { layout: 'grid' },
     }),
+
+
+
+
     defineField({
       name: 'url',
       title: 'Project URL',
