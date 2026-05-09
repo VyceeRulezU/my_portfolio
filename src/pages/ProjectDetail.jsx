@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getAssetUrl } from '../utils/assetHelper';
 import { ALL_PROJECTS } from '../data/projectsData';
 import { ChevronLeft, ChevronRight, X, ArrowLeft } from 'lucide-react';
+import { client, urlFor } from '../utils/sanity';
 
 const GALLERY_API = import.meta.env.VITE_GALLERY_API_URL;
 
@@ -30,27 +31,50 @@ export default function ProjectDetail() {
   }, [galleryImages.length]);
 
   useEffect(() => {
-    const found = ALL_PROJECTS.find(p => p.id === id);
-    setProject(found);
-    window.scrollTo(0, 0);
+    const fetchProject = async () => {
+      // 1. Try Sanity first
+      try {
+        const sanityData = await client.fetch(`*[_type == "project" && slug.current == $slug][0]`, { slug: id });
+        if (sanityData) {
+          const formatted = {
+            ...sanityData,
+            id: sanityData.slug.current,
+            img: sanityData.img ? urlFor(sanityData.img).url() : null,
+            processImages: sanityData.processImages?.map(img => urlFor(img).url()) || []
+          };
+          setProject(formatted);
+          setGalleryImages(formatted.processImages);
+          setGalleryLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.error('Sanity detail fetch error:', err);
+      }
 
-    // Fetch gallery — use folder name from img path if different from id
-    if (id && GALLERY_API) {
-      setGalleryLoading(true);
-      // Extract folder from img path e.g. /portfolio/Osus/... -> Osus
-      const folderMatch = found?.img?.match(/\/portfolio\/([^/]+)\//i);
-      const folderName = folderMatch ? folderMatch[1] : id;
-      fetch(`${GALLERY_API}?project=${folderName}`)
-        .then(r => r.json())
-        .then(data => {
-          setGalleryImages(data.images || []);
-        })
-        .catch(() => setGalleryImages([]))
-        .finally(() => setGalleryLoading(false));
-    } else {
-      setGalleryLoading(false);
-    }
+      // 2. Fallback to local
+      const found = ALL_PROJECTS.find(p => p.id === id);
+      setProject(found);
+      
+      if (id && GALLERY_API) {
+        setGalleryLoading(true);
+        const folderMatch = found?.img?.match(/\/portfolio\/([^/]+)\//i);
+        const folderName = folderMatch ? folderMatch[1] : id;
+        fetch(`${GALLERY_API}?project=${folderName}`)
+          .then(r => r.json())
+          .then(data => {
+            setGalleryImages(data.images || []);
+          })
+          .catch(() => setGalleryImages([]))
+          .finally(() => setGalleryLoading(false));
+      } else {
+        setGalleryLoading(false);
+      }
+    };
+
+    fetchProject();
+    window.scrollTo(0, 0);
   }, [id]);
+
 
   useEffect(() => {
     const handleKeyDown = (e) => {

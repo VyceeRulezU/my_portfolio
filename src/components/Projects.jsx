@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { getAssetUrl } from '../utils/assetHelper';
 import { ALL_PROJECTS } from '../data/projectsData';
+import { client, urlFor } from '../utils/sanity';
 
 const TABS = [
   { id: 'all', label: 'All Projects' },
@@ -13,10 +14,34 @@ const TABS = [
 
 export default function Projects() {
   const [activeTab, setActiveTab] = useState('all');
+  const [sanityProjects, setSanityProjects] = useState([]);
+
+  useEffect(() => {
+    client.fetch(`*[_type == "project"] | order(num asc)`)
+      .then(data => {
+        const formatted = data.map(p => ({
+          ...p,
+          id: p.slug?.current || p._id,
+          img: p.img ? urlFor(p.img).url() : p.img,
+          // Map other fields if necessary
+        }));
+        setSanityProjects(formatted);
+      })
+      .catch(err => console.error('Sanity fetch error:', err));
+  }, []);
+
+  // Merge Sanity projects with local projects, prioritizing Sanity by ID
+  const mergedProjects = [...sanityProjects];
+  ALL_PROJECTS.forEach(local => {
+    if (!mergedProjects.find(p => p.id === local.id)) {
+      mergedProjects.push(local);
+    }
+  });
 
   const filteredProjects = activeTab === 'all' 
-    ? ALL_PROJECTS 
-    : ALL_PROJECTS.filter(p => p.type === activeTab);
+    ? mergedProjects 
+    : mergedProjects.filter(p => p.type === activeTab);
+
 
   return (
     <section id="projects" style={{ 
