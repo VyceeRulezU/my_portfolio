@@ -13,9 +13,19 @@ const GATED_EMAIL = "ironaliv@gmail.com";
 
 const GALLERY_API = import.meta.env.VITE_GALLERY_API_URL;
 
+const SECTIONS = [
+  { id: 'snapshot', label: 'Project Snapshot' },
+  { id: 'overview', label: 'Project Overview', subtitle: 'Context & Brief' },
+  { id: 'problem', label: 'The Problem', subtitle: 'Problem Space' },
+  { id: 'solution', label: 'The Solution', subtitle: 'Design Approach' },
+  { id: 'impact', label: 'Results & Impact', subtitle: 'Outcomes & Impact' },
+  { id: 'gallery', label: 'Process Gallery', subtitle: 'Process & Artifacts' }
+];
+
 export default function ProjectDetail() {
   const { id } = useParams();
   const [project, setProject] = useState(null);
+  const [activeSection, setActiveSection] = useState('');
   const [selectedImgIdx, setSelectedImgIdx] = useState(null);
   const [galleryImages, setGalleryImages] = useState([]);
   const [allProjects, setAllProjects] = useState([]);
@@ -145,20 +155,38 @@ export default function ProjectDetail() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [nextImg, prevImg]);
 
+  useEffect(() => {
+    if (!project || (project.isPrivate && !isUnlocked)) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      { rootMargin: '-20% 0px -60% 0px' }
+    );
+
+    const timeoutId = setTimeout(() => {
+      SECTIONS.forEach((sec) => {
+        const el = document.getElementById(sec.id);
+        if (el) observer.observe(el);
+      });
+    }, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+      observer.disconnect();
+    };
+  }, [project, isUnlocked]);
+
   if (!project) return (
     <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)' }}>
       Project not found. <Link to="/" style={{ color: 'var(--text-primary)', marginLeft: '1rem' }}>Back home</Link>
     </div>
   );
-
-  const SECTIONS = [
-    { id: 'snapshot', label: 'Project Snapshot' },
-    { id: 'overview', label: 'Project Overview', subtitle: 'Context & Brief' },
-    { id: 'problem', label: 'The Problem', subtitle: 'Problem Space' },
-    { id: 'solution', label: 'The Solution', subtitle: 'Design Approach' },
-    { id: 'impact', label: 'Results & Impact', subtitle: 'Outcomes & Impact' },
-    { id: 'gallery', label: 'Process Gallery', subtitle: 'Process & Artifacts' }
-  ];
 
   return (
     <section className="page-container" style={{ paddingTop: '12rem', paddingBottom: '8rem', color: 'var(--text-primary)' }}>
@@ -182,6 +210,9 @@ export default function ProjectDetail() {
 
         .snapshot-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2.5rem; padding: 3rem 0; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); margin-bottom: 6rem; }
         
+        .back-to-work-link { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-tertiary); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; text-decoration: none; transition: color 0.3s ease; }
+        .back-to-work-link:hover { color: var(--text-primary); }
+
         .section-text-content ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 1.5rem; }
         .section-text-content ol { list-style-type: decimal; margin-left: 1.5rem; margin-bottom: 1.5rem; }
         .section-text-content li { margin-bottom: 0.5rem; }
@@ -216,7 +247,7 @@ export default function ProjectDetail() {
         
         {/* Navigation */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: '4rem' }}>
-           <Link to="/#projects" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-tertiary)', fontSize: '0.65rem', fontWeight: '700', letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none' }}>
+           <Link to="/#projects" className="back-to-work-link">
               <ArrowLeft size={14} /> BACK TO WORK
            </Link>
         </motion.div>
@@ -365,7 +396,7 @@ export default function ProjectDetail() {
             <div className="sticky-toc">
               <div style={{ fontSize: '0.6rem', fontWeight: '800', color: 'var(--text-tertiary)', letterSpacing: '0.2em', marginBottom: '1.5rem' }}>CONTENTS</div>
               {SECTIONS.map(sec => (
-                <a key={sec.id} href={`#${sec.id}`} className="toc-link">
+                <a key={sec.id} href={`#${sec.id}`} className={`toc-link ${activeSection === sec.id ? 'active' : ''}`}>
                   <span className="toc-label">{sec.label}</span>
                   {sec.subtitle && <span className="toc-subtitle">{sec.subtitle}</span>}
                 </a>
