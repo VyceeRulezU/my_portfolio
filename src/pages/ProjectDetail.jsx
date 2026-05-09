@@ -18,11 +18,12 @@ export default function ProjectDetail() {
   const [project, setProject] = useState(null);
   const [selectedImgIdx, setSelectedImgIdx] = useState(null);
   const [galleryImages, setGalleryImages] = useState([]);
+  const [allProjects, setAllProjects] = useState([]);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
   const [passwordError, setPasswordError] = useState(false);
-
   const [galleryLoading, setGalleryLoading] = useState(true);
+
 
   const handlePasswordSubmit = (e) => {
     e.preventDefault();
@@ -48,6 +49,31 @@ export default function ProjectDetail() {
       : prev
     );
   }, [galleryImages.length]);
+
+  useEffect(() => {
+    const fetchAllProjects = async () => {
+      try {
+        const data = await client.fetch(`*[_type == "project"] | order(num asc)`);
+        const formatted = data.map(p => ({
+          ...p,
+          id: p.slug?.current || p._id,
+          img: p.img?.asset ? urlFor(p.img).url() : p.img,
+        }));
+        
+        // Merge with local fallback
+        const merged = [...formatted];
+        ALL_PROJECTS.forEach(local => {
+          if (!merged.find(p => p.id === local.id)) {
+            merged.push(local);
+          }
+        });
+        setAllProjects(merged);
+      } catch (err) {
+        console.error('Fetch all projects error:', err);
+      }
+    };
+    fetchAllProjects();
+  }, []);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -159,6 +185,26 @@ export default function ProjectDetail() {
         .section-text-content ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 1.5rem; }
         .section-text-content ol { list-style-type: decimal; margin-left: 1.5rem; margin-bottom: 1.5rem; }
         .section-text-content li { margin-bottom: 0.5rem; }
+
+        .other-works-section { margin-top: 15rem; padding-top: 8rem; border-top: 1px solid var(--border-color); }
+        .other-works-header { display: flex; justify-content: space-between; align-items: center; marginBottom: 5rem; margin-bottom: 4rem; }
+        .other-works-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.5rem; }
+        .work-card { text-decoration: none; color: inherit; group: hover; }
+        .work-card-img { width: 100%; aspect-ratio: 16/10; border-radius: 20px; overflow: hidden; background: var(--bg-secondary); margin-bottom: 1.5rem; border: 1px solid var(--border-color); }
+        .work-card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+        .work-card:hover .work-card-img img { transform: scale(1.05); }
+        .work-card-tag { color: #ff3e3e; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.5rem; display: block; }
+        .work-card-title { font-size: 1.5rem; font-weight: 600; font-family: 'Space Grotesk', sans-serif; display: flex; justify-content: space-between; align-items: center; }
+        .work-card-arrow { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border-color); display: flex; alignItems: center; justify-content: center; opacity: 0.3; transition: all 0.3s; }
+        .work-card:hover .work-card-arrow { opacity: 1; background: var(--text-primary); color: var(--bg-primary); transform: rotate(-45deg); }
+
+        @media (max-width: 1024px) {
+          .other-works-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+          .other-works-grid { grid-template-columns: 1fr; }
+          .other-works-section { margin-top: 10rem; }
+        }
 
         @media (max-width: 1200px) {
           .case-study-layout { flex-direction: column; gap: 4rem; }
@@ -329,6 +375,40 @@ export default function ProjectDetail() {
           </div>
         </>
       )}
+
+
+        {/* View Other Works Section */}
+        <section className="other-works-section">
+          <div className="other-works-header">
+            <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: '700', fontFamily: "'Space Grotesk', sans-serif" }}>View other works</h2>
+            <Link to="/#projects" className="live-btn" style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', fontSize: '0.6rem' }}>
+              Goto works
+            </Link>
+          </div>
+
+          <div className="other-works-grid">
+            {allProjects
+              .filter(p => p.id !== id)
+              .slice(0, 3)
+              .map((p, idx) => (
+                <motion.div key={p.id} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.1 }}>
+                  <Link to={`/work/${p.id}`} className="work-card">
+                    <div className="work-card-img">
+                      <img src={getAssetUrl(p.img)} alt={p.title} />
+                    </div>
+                    <span className="work-card-tag">{p.role || 'Case Study'}</span>
+                    <div className="work-card-title">
+                      {p.title}
+                      <div className="work-card-arrow">
+                        <ArrowLeft size={16} style={{ transform: 'rotate(180deg)' }} />
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              ))}
+          </div>
+        </section>
+
 
 
         {/* Lightbox - keeping existing functionality */}
