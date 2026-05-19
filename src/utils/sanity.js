@@ -18,3 +18,16 @@ const builder = createImageUrlBuilder(client);
 export function urlFor(source) {
   return builder.image(source);
 }
+
+export async function deleteProject(projectId) {
+  try {
+    if (!projectId) {
+      throw new Error('Project ID is required');
+    }
+    const response = await client.delete(projectId);
+    return response;
+  } catch (error) {
+    console.error('Error deleting project:', error);
+    throw error;
+  }
+}

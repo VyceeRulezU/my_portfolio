@@ -28,7 +28,7 @@ const EXPERIENCES = [
     company: "NaliTech Consults",
     role: "Web Designer",
     period: "APR 2020 / DEC 2023",
-    desc: "Delivered 40+ client projects (Salongrid, Manueltech, etc.) from wireframe to deployment. Introduced component-based design workflows that reduced delivery time by an estimated 30%. Built and customised websites using WordPress, Webflow, Framer, and custom HTML/CSS/JS.",
+    desc: "Delivered 40+ client projects (Manueltech, etc.) from wireframe to deployment. Introduced component-based design workflows that reduced delivery time by an estimated 30%. Built and customised websites using WordPress, Webflow, Framer, and custom HTML/CSS/JS.",
     pills: ["40+ PROJECTS", "30% FASTER DELIVERY", "WEBFLOW / WORDPRESS"],
     tags: ["WEB DESIGN", "BRANDING", "WORDPRESS", "WEBFLOW", "HTML/CSS/JS"],
     link: "NALITECH.PRO →",
