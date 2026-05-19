@@ -4,9 +4,9 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAssetUrl } from '../utils/assetHelper';
 import { ALL_PROJECTS } from '../data/projectsData';
-import { ChevronLeft, ChevronRight, X, ArrowLeft, Lock, Mail, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, ArrowLeft, Lock, Mail, Trash2, Edit2, Check } from 'lucide-react';
 import { PortableText } from '@portabletext/react';
-import { client, urlFor, deleteProject } from '../utils/sanity';
+import { client, urlFor, deleteProject, removeGalleryImages } from '../utils/sanity';
 
 const GATED_EMAIL = "ironaliv@gmail.com";
 
@@ -36,6 +36,9 @@ export default function ProjectDetail() {
   const [galleryLoading, setGalleryLoading] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [galleryEditMode, setGalleryEditMode] = useState(false);
+  const [selectedGalleryImages, setSelectedGalleryImages] = useState(new Set());
+  const [isRemovingImages, setIsRemovingImages] = useState(false);
 
 
   const handlePasswordSubmit = (e) => {
@@ -63,6 +66,46 @@ export default function ProjectDetail() {
       console.error('Delete error:', error);
       alert(`Failed to delete project: ${error.message}`);
       setIsDeleting(false);
+    }
+  };
+
+  const handleToggleGalleryImage = (assetRef) => {
+    const newSelected = new Set(selectedGalleryImages);
+    if (newSelected.has(assetRef)) {
+      newSelected.delete(assetRef);
+    } else {
+      newSelected.add(assetRef);
+    }
+    setSelectedGalleryImages(newSelected);
+  };
+
+  const handleRemoveSelectedImages = async () => {
+    if (!project || !project._id || selectedGalleryImages.size === 0) {
+      alert('No images selected');
+      return;
+    }
+
+    setIsRemovingImages(true);
+    try {
+      await removeGalleryImages(project._id, 'processImages', Array.from(selectedGalleryImages));
+      alert('Images removed successfully!');
+      // Refresh the project data
+      const updatedProject = await client.fetch(`*[_type == "project" && _id == $id][0]`, { id: project._id });
+      if (updatedProject) {
+        const updated = {
+          ...updatedProject,
+          processImages: updatedProject.processImages?.filter(img => img?.asset).map(img => urlFor(img).url()) || [],
+        };
+        setProject(updated);
+        setGalleryImages(updated.processImages);
+      }
+      setSelectedGalleryImages(new Set());
+      setGalleryEditMode(false);
+    } catch (error) {
+      console.error('Error removing images:', error);
+      alert(`Failed to remove images: ${error.message}`);
+    } finally {
+      setIsRemovingImages(false);
     }
   };
 
@@ -119,14 +162,15 @@ export default function ProjectDetail() {
             isPrivate: sanityData.isPrivate || false,
             password: sanityData.password || null,
             img: sanityData.img?.asset ? urlFor(sanityData.img).url() : null,
-            processImages: sanityData.processImages?.filter(img => img?.asset).map(img => urlFor(img).url()) || [],
+            processImages: sanityData.processImages?.filter(img => img?.asset) || [],
             problemImages: sanityData.problemImages?.filter(img => img?.asset).map(img => urlFor(img).url()) || [],
             solutionImages: sanityData.solutionImages?.filter(img => img?.asset).map(img => urlFor(img).url()) || [],
             overviewImages: sanityData.overviewImages?.filter(img => img?.asset).map(img => urlFor(img).url()) || [],
             impactImages: sanityData.impactImages?.filter(img => img?.asset).map(img => urlFor(img).url()) || []
           };
           setProject(formatted);
-          setGalleryImages(formatted.processImages);
+          const processImageUrls = formatted.processImages.map(img => urlFor(img).url());
+          setGalleryImages(processImageUrls);
           setGalleryLoading(false);
           return;
         }
@@ -404,15 +448,135 @@ export default function ProjectDetail() {
               
               if (sec.id === 'gallery') return (
                 <div key={sec.id} id={sec.id} className="section-block">
-                  <h2 style={{ fontSize: '2.5rem', fontWeight: '700', marginBottom: '1rem', fontFamily: "'Space Grotesk', sans-serif" }}>{sec.label}</h2>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h2 style={{ fontSize: '2.5rem', fontWeight: '700', fontFamily: "'Space Grotesk', sans-serif" }}>{sec.label}</h2>
+                    <button
+                      onClick={() => {
+                        if (galleryEditMode) {
+                          setSelectedGalleryImages(new Set());
+                        }
+                        setGalleryEditMode(!galleryEditMode);
+                      }}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        borderRadius: '99px',
+                        border: '1px solid var(--border-color)',
+                        background: galleryEditMode ? 'var(--text-primary)' : 'transparent',
+                        color: galleryEditMode ? 'var(--bg-primary)' : 'var(--text-tertiary)',
+                        cursor: 'pointer',
+                        fontSize: '0.65rem',
+                        fontWeight: '700',
+                        letterSpacing: '0.1em',
+                        textTransform: 'uppercase',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        transition: 'all 0.3s',
+                      }}
+                    >
+                      <Edit2 size={14} /> {galleryEditMode ? 'Done' : 'Edit'}
+                    </button>
+                  </div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '3rem', letterSpacing: '0.05em' }}>{sec.subtitle}</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
-                    {galleryImages.map((img, idx) => (
-                      <motion.div key={idx} whileHover={{ scale: 1.02 }} onClick={() => setSelectedImgIdx(idx)} style={{ borderRadius: '16px', overflow: 'hidden', cursor: 'pointer', aspectRatio: '16/9', background: 'var(--bg-secondary)' }}>
-                        <img src={img} alt={`Process ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      </motion.div>
-                    ))}
+                    {galleryImages.map((img, idx) => {
+                      const assetRef = project?.processImages?.[idx]?.asset?._ref;
+                      const isSelected = assetRef && selectedGalleryImages.has(assetRef);
+                      return (
+                        <motion.div 
+                          key={idx} 
+                          whileHover={{ scale: 1.02 }} 
+                          onClick={() => galleryEditMode && assetRef && handleToggleGalleryImage(assetRef)}
+                          style={{ 
+                            borderRadius: '16px', 
+                            overflow: 'hidden', 
+                            cursor: galleryEditMode ? 'pointer' : 'pointer', 
+                            aspectRatio: '16/9', 
+                            background: 'var(--bg-secondary)',
+                            position: 'relative',
+                            border: isSelected ? '2px solid #ff3e3e' : 'none',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          <img 
+                            src={img} 
+                            alt={`Process ${idx + 1}`} 
+                            onClick={(e) => !galleryEditMode && setSelectedImgIdx(idx)}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: isSelected ? 0.6 : 1, transition: 'opacity 0.2s' }} 
+                          />
+                          {galleryEditMode && assetRef && (
+                            <div style={{
+                              position: 'absolute',
+                              top: '0.75rem',
+                              right: '0.75rem',
+                              width: '24px',
+                              height: '24px',
+                              borderRadius: '4px',
+                              border: '2px solid white',
+                              background: isSelected ? '#ff3e3e' : 'transparent',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              cursor: 'pointer'
+                            }}>
+                              {isSelected && <Check size={16} color="white" />}
+                            </div>
+                          )}
+                        </motion.div>
+                      );
+                    })}
                   </div>
+                  {galleryEditMode && selectedGalleryImages.size > 0 && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 20 }} 
+                      animate={{ opacity: 1, y: 0 }}
+                      style={{ display: 'flex', gap: '1rem', marginTop: '2rem', justifyContent: 'center' }}
+                    >
+                      <button
+                        onClick={() => setSelectedGalleryImages(new Set())}
+                        disabled={isRemovingImages}
+                        style={{
+                          padding: '0.75rem 1.5rem',
+                          borderRadius: '99px',
+                          border: '1px solid var(--border-color)',
+                          background: 'transparent',
+                          color: 'var(--text-primary)',
+                          cursor: isRemovingImages ? 'not-allowed' : 'pointer',
+                          fontSize: '0.7rem',
+                          fontWeight: '700',
+                          letterSpacing: '0.1em',
+                          textTransform: 'uppercase',
+                          transition: 'all 0.3s',
+                          opacity: isRemovingImages ? 0.5 : 1,
+                        }}
+                      >
+                        Deselect All
+                      </button>
+                      <button
+                        onClick={handleRemoveSelectedImages}
+                        disabled={isRemovingImages}
+                        style={{
+                          padding: '0.75rem 1.5rem',
+                          borderRadius: '99px',
+                          border: 'none',
+                          background: '#ff3e3e',
+                          color: 'white',
+                          cursor: isRemovingImages ? 'not-allowed' : 'pointer',
+                          fontSize: '0.7rem',
+                          fontWeight: '700',
+                          letterSpacing: '0.1em',
+                          textTransform: 'uppercase',
+                          transition: 'all 0.3s',
+                          opacity: isRemovingImages ? 0.7 : 1,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                        }}
+                      >
+                        <Trash2 size={14} /> {isRemovingImages ? `Removing ${selectedGalleryImages.size}...` : `Remove ${selectedGalleryImages.size}`}
+                      </button>
+                    </motion.div>
+                  )}
                 </div>
               );
 
