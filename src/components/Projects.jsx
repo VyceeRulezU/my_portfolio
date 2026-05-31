@@ -12,8 +12,11 @@ const TABS = [
   { id: 'other', label: 'Other Work' }
 ];
 
+const INITIAL_VISIBLE = 9;
+
 export default function Projects() {
   const [activeTab, setActiveTab] = useState('all');
+  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
   const [sanityProjects, setSanityProjects] = useState([]);
 
   useEffect(() => {
@@ -30,6 +33,10 @@ export default function Projects() {
       })
       .catch(err => console.error('Sanity fetch error:', err));
   }, []);
+
+  useEffect(() => {
+    setVisibleCount(INITIAL_VISIBLE);
+  }, [activeTab]);
 
   // Merge Sanity projects with local projects, prioritizing Sanity by ID
   const mergedProjects = [...sanityProjects];
@@ -143,7 +150,7 @@ export default function Projects() {
 
         <motion.div layout className="projects-grid">
           <AnimatePresence mode="popLayout">
-            {filteredProjects.map((project, idx) => (
+            {filteredProjects.slice(0, visibleCount).map((project, idx) => (
               <motion.div 
                 key={project.id}
                 layout
@@ -259,6 +266,31 @@ export default function Projects() {
             ))}
           </AnimatePresence>
         </motion.div>
+
+        {filteredProjects.length > visibleCount && (
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '4rem' }}>
+            <button
+              onClick={() => setVisibleCount(prev => prev + INITIAL_VISIBLE)}
+              style={{
+                background: 'transparent',
+                border: '1px solid var(--border-color)',
+                color: 'var(--text-primary)',
+                padding: '1rem 2.5rem',
+                borderRadius: '99px',
+                cursor: 'pointer',
+                fontSize: '0.7rem',
+                fontWeight: '700',
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                transition: 'all 0.3s',
+              }}
+              onMouseEnter={(e) => { e.target.style.background = 'var(--text-primary)'; e.target.style.color = 'var(--bg-primary)'; }}
+              onMouseLeave={(e) => { e.target.style.background = 'transparent'; e.target.style.color = 'var(--text-primary)'; }}
+            >
+              Show More
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );
