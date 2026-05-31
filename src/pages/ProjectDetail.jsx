@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAssetUrl } from '../utils/assetHelper';
 import { ALL_PROJECTS } from '../data/projectsData';
-import { ChevronLeft, ChevronRight, X, ArrowLeft, Lock, Mail, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, ArrowLeft, Lock, Mail } from 'lucide-react';
 import { PortableText } from '@portabletext/react';
-import { client, urlFor, deleteProject } from '../utils/sanity';
+import { client, urlFor } from '../utils/sanity';
 
 const GATED_EMAIL = "ironaliv@gmail.com";
 
@@ -24,7 +24,6 @@ const SECTIONS = [
 
 export default function ProjectDetail() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [activeSection, setActiveSection] = useState('');
   const [selectedImgIdx, setSelectedImgIdx] = useState(null);
@@ -34,10 +33,6 @@ export default function ProjectDetail() {
   const [passwordInput, setPasswordInput] = useState("");
   const [passwordError, setPasswordError] = useState(false);
   const [galleryLoading, setGalleryLoading] = useState(true);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-
   const handlePasswordSubmit = (e) => {
     e.preventDefault();
     if (project?.password && passwordInput === project.password) {
@@ -45,24 +40,6 @@ export default function ProjectDetail() {
       setPasswordError(false);
     } else {
       setPasswordError(true);
-    }
-  };
-
-  const handleDeleteProject = async () => {
-    if (!project || !project._id) {
-      alert('Cannot delete: Project ID not found');
-      return;
-    }
-
-    setIsDeleting(true);
-    try {
-      await deleteProject(project._id);
-      alert('Project deleted successfully!');
-      navigate('/#projects', { replace: true });
-    } catch (error) {
-      console.error('Delete error:', error);
-      alert(`Failed to delete project: ${error.message}`);
-      setIsDeleting(false);
     }
   };
 
@@ -297,36 +274,7 @@ export default function ProjectDetail() {
                   View Live Project ↗
                </motion.a>
              )}
-             <motion.button
-               onClick={() => setShowDeleteModal(true)}
-               initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5 }}
-               style={{
-                 background: 'transparent',
-                 border: '1px solid var(--border-color)',
-                 color: 'var(--text-tertiary)',
-                 padding: '1rem 1.5rem',
-                 borderRadius: '99px',
-                 cursor: 'pointer',
-                 fontSize: '0.7rem',
-                 fontWeight: '700',
-                 letterSpacing: '0.1em',
-                 textTransform: 'uppercase',
-                 display: 'flex',
-                 alignItems: 'center',
-                 gap: '0.5rem',
-                 transition: 'all 0.3s',
-               }}
-               onMouseEnter={(e) => {
-                 e.target.style.borderColor = '#ff3e3e';
-                 e.target.style.color = '#ff3e3e';
-               }}
-               onMouseLeave={(e) => {
-                 e.target.style.borderColor = 'var(--border-color)';
-                 e.target.style.color = 'var(--text-tertiary)';
-               }}
-             >
-               <Trash2 size={16} /> Delete
-             </motion.button>
+
            </div>
         </div>
 
@@ -512,75 +460,7 @@ export default function ProjectDetail() {
           document.body
         )}
 
-        {/* Delete Confirmation Modal */}
-        {createPortal(
-          <AnimatePresence>
-            {showDeleteModal && (
-              <motion.div 
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0, 0, 0, 0.5)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9998 }}
-                onClick={() => !isDeleting && setShowDeleteModal(false)}
-              >
-                <motion.div
-                  initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
-                  onClick={(e) => e.stopPropagation()}
-                  style={{ background: 'var(--bg-secondary)', borderRadius: '24px', border: '1px solid var(--border-color)', padding: '2.5rem', maxWidth: '500px', width: '90%', textAlign: 'center' }}
-                >
-                  <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(255, 62, 62, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: '1px solid rgba(255, 62, 62, 0.3)' }}>
-                    <Trash2 size={28} color="#ff3e3e" />
-                  </div>
-                  <h3 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '1rem', fontFamily: "'Space Grotesk', sans-serif" }}>Delete Project?</h3>
-                  <p style={{ color: 'var(--text-secondary)', marginBottom: '2.5rem', fontSize: '0.95rem' }}>
-                    Are you sure you want to delete <strong>{project?.title}</strong>? This action cannot be undone.
-                  </p>
-                  <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                    <button
-                      onClick={() => setShowDeleteModal(false)}
-                      disabled={isDeleting}
-                      style={{
-                        padding: '0.75rem 1.5rem',
-                        borderRadius: '99px',
-                        border: '1px solid var(--border-color)',
-                        background: 'transparent',
-                        color: 'var(--text-primary)',
-                        cursor: isDeleting ? 'not-allowed' : 'pointer',
-                        fontSize: '0.7rem',
-                        fontWeight: '700',
-                        letterSpacing: '0.1em',
-                        textTransform: 'uppercase',
-                        transition: 'all 0.3s',
-                        opacity: isDeleting ? 0.5 : 1,
-                      }}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleDeleteProject}
-                      disabled={isDeleting}
-                      style={{
-                        padding: '0.75rem 1.5rem',
-                        borderRadius: '99px',
-                        border: 'none',
-                        background: '#ff3e3e',
-                        color: 'white',
-                        cursor: isDeleting ? 'not-allowed' : 'pointer',
-                        fontSize: '0.7rem',
-                        fontWeight: '700',
-                        letterSpacing: '0.1em',
-                        textTransform: 'uppercase',
-                        transition: 'all 0.3s',
-                        opacity: isDeleting ? 0.7 : 1,
-                      }}
-                    >
-                      {isDeleting ? 'Deleting...' : 'Delete Project'}
-                    </button>
-                  </div>
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>,
-          document.body
-        )}
+
       </div>
     </section>
   );
