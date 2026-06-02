@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getAssetUrl } from '../utils/assetHelper';
 import { ALL_PROJECTS } from '../data/projectsData';
 import { ChevronLeft, ChevronRight, X, ArrowLeft, Lock, Mail } from 'lucide-react';
+import LogoWhite from '../assets/VI_Logo_White.png';
+import LogoBlack from '../assets/VI_Black_Logo.png';
 import { PortableText } from '@portabletext/react';
 import { client, urlFor } from '../utils/sanity';
 
@@ -33,6 +35,7 @@ export default function ProjectDetail() {
   const [passwordInput, setPasswordInput] = useState("");
   const [passwordError, setPasswordError] = useState(false);
   const [galleryLoading, setGalleryLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const handlePasswordSubmit = (e) => {
     e.preventDefault();
     if (project?.password && passwordInput === project.password) {
@@ -85,6 +88,7 @@ export default function ProjectDetail() {
 
   useEffect(() => {
     const fetchProject = async () => {
+      setLoading(true);
       try {
         const sanityData = await client.fetch(`*[_type == "project" && slug.current == $slug][0]`, { slug: id });
         console.log("Sanity Project Data:", sanityData);
@@ -106,6 +110,7 @@ export default function ProjectDetail() {
           const processImageUrls = formatted.processImages.map(img => urlFor(img).url());
           setGalleryImages(processImageUrls);
           setGalleryLoading(false);
+          setLoading(false);
           return;
         }
 
@@ -138,6 +143,8 @@ export default function ProjectDetail() {
       } else {
         setGalleryLoading(false);
       }
+
+      setLoading(false);
     };
 
     fetchProject();
@@ -180,6 +187,22 @@ export default function ProjectDetail() {
       observer.disconnect();
     };
   }, [project, isUnlocked]);
+
+  if (loading) {
+    const isDarkTheme = document.documentElement.classList.contains('dark-theme');
+    const logoSrc = isDarkTheme ? LogoWhite : LogoBlack;
+    return (
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)' }}>
+        <motion.img
+          src={logoSrc}
+          alt="Loading"
+          style={{ height: '6rem', width: 'auto' }}
+          animate={{ opacity: [1, 0.3, 1] }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+        />
+      </div>
+    );
+  }
 
   if (!project) return (
     <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)' }}>
