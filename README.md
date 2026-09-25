@@ -1,118 +1,68 @@
-# Victor Ironali Portfolio
+# Victor Ironali — Portfolio
 
-A modern, dark-themed portfolio website showcasing the work of Victor Ironali, Senior Product Designer and UX Engineer with 6+ years of experience in SaaS, fintech, and EdTech.
+Portfolio site for Victor Ironali, Senior Product Designer & UX Engineer. Live at [ironali.com](https://ironali.com).
 
-## About Victor
+## Stack
 
-Victor Ironali is a product designer and UX engineer based in Dublin, Ireland. With over 6 years of experience, he specializes in creating intuitive digital experiences that bridge business goals with user needs. Currently working as Lead UX/Product Designer at Jobin.cloud.
+- **App:** React 19, Vite 8, React Router 7, Framer Motion, Lucide icons
+- **Content:** Sanity CMS (project `9hecsvz8`, dataset `production`)
+- **Images:** Cloudflare R2 (public bucket) and the Sanity image CDN
+- **Hosting:** Vercel (SPA rewrites in `vercel.json`, serverless functions in `api/`), with Vercel Analytics and Google Analytics
 
-### Experience
-
-- **Jobin.cloud** (Jan 2024 - Present) — Lead UX/Product Designer, Dublin
-- **ERCAS** (Aug 2015 - Mar 2024) — Product Designer, London
-- **NaliTech Consults** (Apr 2020 - Dec 2023) — Web Designer, Remote
-
-## Tech Stack
-
-- **Framework:** React 19
-- **Build Tool:** Vite 8
-- **Animations:** Framer Motion
-- **Icons:** Lucide React
-- **Styling:** CSS with custom properties
-
-## Design System
-
-The portfolio features a cohesive dark theme design:
-
-- **Background:** #050505 (primary), #0a0a0a (secondary)
-- **Text:** #fafafa (primary), #a3a3a3 (secondary), #525252 (tertiary)
-- **Typography:** Space Grotesk (headings), Inter (body)
-- **Components:** Glass panels with backdrop blur, pill buttons, smooth animations
-
-## Features
-
-- Responsive design with mobile-first approach
-- Dark/Light theme toggle with localStorage persistence
-- Smooth scroll navigation
-- Animated section reveals on scroll
-- Image hover animations
-- CV download functionality
-
-## Sections
-
-1. **Hero** — Introduction with profile photo and call-to-action
-2. **Services** — Four core offerings (UI/UX Design, Front-End Dev, Design Systems, Product Strategy)
-3. **Projects** — 10 selected works split into Live Projects and Concept Projects
-4. **Skills** — Grid of 12 tools and technologies
-5. **Footer** — Contact links and social profiles
-
-## Projects
-
-### Live Projects
-- **Jobin.cloud** — B2B recruitment platform redesign (50K+ companies)
-- **KoloFund** — B2C fintech micro-investment app for Gen Z
-- **Governance Resource Hub** — EdTech platform with AI-powered content summaries
-- **NaliTech Consults** — Custom WordPress solutions for SMEs
-
-### Concept Projects
-- EduFlow, HealthTrack, EcoConnect, TaskMaster AI, FinWiz, TravelBuddy
-
-## Getting Started
+## Getting started
 
 ```bash
-# Install dependencies
 npm install
-
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
+cp .env.example .env   # fill in values
+npm run dev            # site at http://localhost:5173
+npm run studio         # Sanity Studio at http://localhost:3333
 ```
 
-## Project Structure
+`npm run dev` doesn't serve `api/` routes. To test private-project unlocking locally, use `vercel dev`.
+
+## Scripts
+
+| Script | What it does |
+|---|---|
+| `npm run dev` / `build` / `preview` | Vite dev server, production build, preview the build |
+| `npm run lint` | ESLint |
+| `npm run studio` | Local Sanity Studio |
+| `npm run r2:upload -- <file> <key> [...]` | Upload files to R2 (e.g. `npm run r2:upload -- "shot.png" portfolio/whhf/shot.png`) |
+| `npm run r2:upload -- --site` | Upload the site images listed in `scripts/r2-upload.js` |
+
+## How content works
+
+**Projects** come from Sanity (`schemaTypes/project.js`). `src/data/projectsData.js` is only used as a fallback when Sanity is unreachable.
+
+Data access lives in `src/utils/projects.js`:
+
+- **Thumbnail:** `imgUrl` (an R2 URL) if set, otherwise the Sanity `img`, resized and served as WebP/AVIF.
+- **Gallery:** Sanity *Process Images* if present, otherwise every image in R2 under `portfolio/<r2Folder or slug>/`, listed by `VITE_GALLERY_API_URL`.
+- **Private projects** (`isPrivate`): the case-study body and password are never sent to the browser. The password is checked server-side by `api/unlock.js`, which then returns the content.
+
+### Adding a project
+
+1. Upload images to R2 under `portfolio/<slug>/`, e.g. `npm run r2:upload -- "cover.png" portfolio/<slug>/cover.png`.
+2. In Sanity Studio, create a Project. Set the slug (lowercase, no spaces), number, type, role, year, description, headline, the four case-study sections and the project URL.
+3. Set **Main Image URL (R2)** to the cover's public R2 URL. The gallery picks up everything else in that R2 folder automatically. Set **R2 Gallery Folder** only if the folder name differs from the slug.
+
+### Site images
+
+Logos and hero images are served from R2 under `site/`; see `SITE_IMAGES` in `src/utils/assetHelper.js`. Favicons and the social share image stay in `public/` so they're same-origin. The CV PDF is bundled from `src/assets/`.
+
+## Environment variables
+
+See `.env.example`. Only `VITE_*` variables reach the browser. Everything else stays in local scripts or Vercel functions, and must never be prefixed `VITE_`.
+
+## Structure
 
 ```
-portfolio/
-├── src/
-│   ├── assets/           # Images and static assets
-│   ├── components/       # React components
-│   │   ├── Navbar.jsx
-│   │   ├── Hero.jsx
-│   │   ├── Services.jsx
-│   │   ├── Projects.jsx
-│   │   ├── Skills.jsx
-│   │   └── Footer.jsx
-│   ├── App.jsx           # Main app component
-│   ├── index.css         # Global styles
-│   └── main.jsx          # Entry point
-├── index.html
-└── vite.config.js
+api/unlock.js            Vercel function: password check for private case studies
+schemaTypes/             Sanity schema
+scripts/r2-upload.js     R2 upload helper
+src/
+  components/            Navbar, Hero, Experience, Projects, AboutSection, Skills, Footer, CVModal, BackToTop
+  pages/                 Home, AboutPage, ProjectDetail
+  utils/                 Sanity client + config, GROQ queries, project data access, asset URLs
+  data/projectsData.js   Offline fallback for projects
 ```
-
-## Customization
-
-### Updating Content
-
-- **Personal Info:** Edit `Hero.jsx` for bio and introduction
-- **Services:** Modify the `SERVICES` array in `Services.jsx`
-- **Projects:** Update `LIVE_PROJECTS` and `CONCEPT_PROJECTS` in `Projects.jsx`
-- **Skills:** Edit the `SKILLS` array in `Skills.jsx`
-- **Contact Links:** Update links in `Footer.jsx`
-
-### Assets
-
-- **Logo:** `src/assets/VI_Logo_White.png`
-- **Profile Image:** `src/assets/Ironali.png`
-- **CV PDF:** `src/assets/Victor Ironali (2).pdf`
-
-### Theme
-
-The site uses CSS custom properties for theming. Toggle between dark and light themes using the sun/moon button in the navbar. Theme preference is saved to localStorage.
-
-## License
-
-This portfolio is created for Victor Ironali. All rights reserved.

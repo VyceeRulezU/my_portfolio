@@ -3,24 +3,76 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Download, X, ExternalLink, Loader2 } from 'lucide-react';
 import CVFile from '../assets/Victor Ironali (2).pdf';
 
-export default function CVModal({ isOpen, onClose }) {
+const cvUrl = CVFile;
+
+function CVViewer({ cvUrl }) {
   const [isLoading, setIsLoading] = useState(true);
-  const cvUrl = CVFile;
+
+  return (
+    <div style={{ 
+      flex: 1, 
+      position: 'relative',
+      backgroundColor: '#1a1a1a',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center'
+    }}>
+      {isLoading && (
+        <div style={{ 
+          position: 'absolute', 
+          top: 0, left: 0, right: 0, bottom: 0,
+          display: 'flex', 
+          flexDirection: 'column',
+          alignItems: 'center', 
+          justifyContent: 'center',
+          gap: '1rem',
+          color: '#fff',
+          zIndex: 5
+        }}>
+          <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
+            <Loader2 size={32} />
+          </motion.div>
+          <p style={{ fontSize: '0.75rem', fontWeight: '600', opacity: 0.7, letterSpacing: '0.1em' }}>INITIALIZING PREVIEW...</p>
+        </div>
+      )}
+      
+      <iframe
+        src={`${cvUrl}#toolbar=1&navpanes=0&scrollbar=1`}
+        style={{
+          width: '100%',
+          height: '100%',
+          border: 'none',
+          zIndex: 2,
+          opacity: isLoading ? 0 : 1,
+          transition: 'opacity 0.3s ease'
+        }}
+        onLoad={() => setIsLoading(false)}
+        title="Victor Ironali CV"
+      />
+      
+      {/* Fallback for very restrictive mobile browsers */}
+      <div style={{
+        position: 'absolute',
+        zIndex: 1,
+        padding: '2rem',
+        textAlign: 'center',
+        color: 'var(--text-secondary)',
+        fontSize: '0.9rem'
+      }}>
+        <p>If the preview is blank, please browse the file on a desktop or download the PDF below.</p>
+        <a href={cvUrl} download style={{ color: 'var(--text-primary)', fontWeight: '700', textDecoration: 'underline' }}>Download CV</a>
+      </div>
+    </div>
+  );
+}
+
+export default function CVModal({ isOpen, onClose }) {
 
   // Prevent scroll when modal is open
   useEffect(() => {
-    if (typeof document !== 'undefined') {
-      if (isOpen) {
-        document.body.style.overflow = 'hidden';
-      } else {
-        document.body.style.overflow = 'unset';
-      }
-    }
-  }, [isOpen]);
-
-  // Reset loading state when modal opens
-  useEffect(() => {
-    if (isOpen) setIsLoading(true);
+    if (!isOpen) return;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
 
   return (
@@ -144,61 +196,7 @@ export default function CVModal({ isOpen, onClose }) {
               </div>
             </div>
 
-            {/* Native Iframe Viewer */}
-            <div style={{ 
-              flex: 1, 
-              position: 'relative',
-              backgroundColor: '#1a1a1a',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center'
-            }}>
-              {isLoading && (
-                <div style={{ 
-                  position: 'absolute', 
-                  top: 0, left: 0, right: 0, bottom: 0,
-                  display: 'flex', 
-                  flexDirection: 'column',
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  gap: '1rem',
-                  color: '#fff',
-                  zIndex: 5
-                }}>
-                  <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
-                    <Loader2 size={32} />
-                  </motion.div>
-                  <p style={{ fontSize: '0.75rem', fontWeight: '600', opacity: 0.7, letterSpacing: '0.1em' }}>INITIALIZING PREVIEW...</p>
-                </div>
-              )}
-              
-              <iframe
-                src={`${cvUrl}#toolbar=1&navpanes=0&scrollbar=1`}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  border: 'none',
-                  zIndex: 2,
-                  opacity: isLoading ? 0 : 1,
-                  transition: 'opacity 0.3s ease'
-                }}
-                onLoad={() => setIsLoading(false)}
-                title="Victor Ironali CV"
-              />
-              
-              {/* Fallback for very restrictive mobile browsers */}
-              <div style={{
-                position: 'absolute',
-                zIndex: 1,
-                padding: '2rem',
-                textAlign: 'center',
-                color: 'var(--text-secondary)',
-                fontSize: '0.9rem'
-              }}>
-                <p>If the preview is blank, please browse the file on a desktop or download the PDF below.</p>
-                <a href={cvUrl} download style={{ color: 'var(--text-primary)', fontWeight: '700', textDecoration: 'underline' }}>Download CV</a>
-              </div>
-            </div>
+            <CVViewer cvUrl={cvUrl} />
           </motion.div>
         </div>
       )}

@@ -1,21 +1,23 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import LogoWhite from '../assets/VI_Logo_White.png';
-import LogoBlack from '../assets/VI_Black_Logo.png';
+import { SITE_IMAGES } from '../utils/assetHelper';
 import { Sun, Moon, Menu, X } from 'lucide-react';
 
 export default function Navbar({ theme, toggleTheme, openCV }) {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
+  const [prevPath, setPrevPath] = useState(location.pathname);
+
   // Close menu when route changes
-  useEffect(() => {
+  if (location.pathname !== prevPath) {
+    setPrevPath(location.pathname);
     setIsOpen(false);
-  }, [location]);
+  }
 
   // Use appropriate logo based on theme
-  const logoSrc = theme === 'dark-theme' ? LogoWhite : LogoBlack;
+  const logoSrc = theme === 'dark-theme' ? SITE_IMAGES.logoWhite : SITE_IMAGES.logoBlack;
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -44,7 +46,7 @@ export default function Navbar({ theme, toggleTheme, openCV }) {
       <Link to="/" style={{ display: 'flex', alignItems: 'center', zIndex: 110 }}>
         <img 
           src={logoSrc} 
-          alt="Portfolio Logo" 
+          alt="Victor Ironali, home" 
           style={{ height: '5rem', width: 'auto' }} 
         />
       </Link>

@@ -43,6 +43,19 @@ export default defineType({
       options: {
         hotspot: true,
       },
+      description: 'Used only when "Main Image URL (R2)" is empty.',
+    }),
+    defineField({
+      name: 'imgUrl',
+      title: 'Main Image URL (R2)',
+      type: 'url',
+      description: 'Public R2 URL for the thumbnail, e.g. https://<bucket>.r2.dev/portfolio/<slug>/<file>.png. Takes priority over Main Image.',
+    }),
+    defineField({
+      name: 'r2Folder',
+      title: 'R2 Gallery Folder',
+      type: 'string',
+      description: 'Folder under portfolio/ in R2 holding this project\'s gallery. Defaults to the slug. Used when Process Images is empty.',
     }),
 
     defineField({
@@ -93,8 +106,6 @@ export default defineType({
         layout: 'grid',
       },
     }),
-
-
 
     defineField({
       name: 'overview',
@@ -149,9 +160,6 @@ export default defineType({
       of: [{type: 'image', options: {hotspot: true}}],
       options: { layout: 'grid' },
     }),
-
-
-
 
     defineField({
       name: 'url',

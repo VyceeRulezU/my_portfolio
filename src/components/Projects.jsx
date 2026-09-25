@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { getAssetUrl } from '../utils/assetHelper';
-import { ALL_PROJECTS } from '../data/projectsData';
-import { client, urlFor } from '../utils/sanity';
+import { getProjects } from '../utils/projects';
+import SmartImg from './SmartImg';
 
 const TABS = [
   { id: 'all', label: 'All Projects' },
@@ -17,38 +16,20 @@ const INITIAL_VISIBLE = 9;
 export default function Projects() {
   const [activeTab, setActiveTab] = useState('all');
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
-  const [sanityProjects, setSanityProjects] = useState([]);
+  const [projects, setProjects] = useState([]);
 
   useEffect(() => {
-    client.fetch(`*[_type == "project"] | order(num asc)`)
-      .then(data => {
-        const formatted = data.map(p => ({
-          ...p,
-          id: p.slug?.current || p._id,
-          img: p.img?.asset ? urlFor(p.img).url() : p.img,
-
-          // Map other fields if necessary
-        }));
-        setSanityProjects(formatted);
-      })
-      .catch(err => console.error('Sanity fetch error:', err));
+    getProjects().then(setProjects);
   }, []);
 
-  useEffect(() => {
+  const selectTab = (tabId) => {
+    setActiveTab(tabId);
     setVisibleCount(INITIAL_VISIBLE);
-  }, [activeTab]);
+  };
 
-  // Merge Sanity projects with local projects, prioritizing Sanity by ID
-  const mergedProjects = [...sanityProjects];
-  ALL_PROJECTS.forEach(local => {
-    if (!mergedProjects.find(p => p.id === local.id)) {
-      mergedProjects.push(local);
-    }
-  });
-
-  const filteredProjects = activeTab === 'all' 
-    ? mergedProjects 
-    : mergedProjects.filter(p => p.type === activeTab);
+  const filteredProjects = activeTab === 'all'
+    ? projects
+    : projects.filter(p => p.type === activeTab);
 
 
   return (
@@ -135,7 +116,7 @@ export default function Projects() {
                {TABS.map(tab => (
                  <button 
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => selectTab(tab.id)}
                   className={`tab-btn ${activeTab === tab.id ? 'active' : ''}`}
                  >
                   {tab.label}
@@ -170,19 +151,22 @@ export default function Projects() {
                     marginBottom: '1.5rem',
                     backgroundColor: 'var(--border-color)',
                   }}>
-                    <motion.img 
+                    <motion.div
                       whileHover={{ scale: 1.03 }}
                       transition={{ duration: 0.4 }}
-                      src={getAssetUrl(project.img)} 
-                      alt={project.title}
-                      loading="lazy"
-                      decoding="async"
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover'
-                      }}
-                    />
+                      style={{ width: '100%', height: '100%' }}
+                    >
+                      <SmartImg
+                        src={project.img}
+                        width={800}
+                        alt={project.title}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover'
+                        }}
+                      />
+                    </motion.div>
                   </div>
                 </Link>
 

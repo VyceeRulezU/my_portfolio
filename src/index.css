@@ -56,12 +56,6 @@ html, body {
   transition: background-color 0.4s ease, color 0.4s ease;
   overflow-x: visible;
   overflow-y: auto;
-  caret-color: transparent;
-}
-
-
-body:active {
-  cursor: none !important;
 }
 
 #root {

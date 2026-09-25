@@ -1,9 +1,6 @@
 import { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { getAssetUrl } from '../utils/assetHelper';
-import ProfileImage from '../assets/hero.png';
-import Ironali2 from '../assets/ironali-2.png';
+import { SITE_IMAGES } from '../utils/assetHelper';
 
 // Helper for letter-by-letter scroll animation
 const AnimatedLetter = ({ char, index, scrollYProgress }) => {
@@ -41,9 +38,6 @@ export default function Hero({ openCV }) {
     offset: ["start start", "end start"]
   });
 
-  const localProfileImg = ProfileImage; // Left image
-  const r2Image = Ironali2; // Right image (93KB optimized)
-
   const renderSplitText = (text, startIdx = 0) => {
     return text.split('').map((char, i) => (
       <AnimatedLetter 
@@ -56,7 +50,7 @@ export default function Hero({ openCV }) {
   };
 
   return (
-    <section id="about" ref={containerRef} style={{ 
+    <section id="hero" ref={containerRef} style={{ 
       position: 'relative',
       minHeight: '100vh', 
       width: '100%',
@@ -80,7 +74,7 @@ export default function Hero({ openCV }) {
         zIndex: 0,
         pointerEvents: 'none'
       }}>
-        {/* Left Image (Local Profile) - Hidden on mobile */}
+        {/* Left Image - Hidden on mobile */}
         <div className="hero-left-img" style={{ position: 'relative', width: '50%', height: '100%' }}>
           <div style={{
             position: 'absolute',
@@ -92,15 +86,15 @@ export default function Hero({ openCV }) {
             zIndex: 1
           }} />
           <img
-            src={localProfileImg}
-            alt="Victor Ironali Left"
+            src={SITE_IMAGES.heroLeft}
+            alt=""
             loading="eager"
-            fetchpriority="high"
+            fetchPriority="high"
             style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.08, willChange: 'transform' }}
           />
         </div>
         
-        {/* Right Image (Optimized Ironali) - Full width on mobile */}
+        {/* Right Image - Full width on mobile */}
         <div className="hero-right-img" style={{ position: 'relative', width: '50%', height: '100%' }}>
           <div style={{
             position: 'absolute',
@@ -112,10 +106,10 @@ export default function Hero({ openCV }) {
             zIndex: 1
           }} />
           <img
-            src={r2Image}
-            alt="Victor Ironali Right"
+            src={SITE_IMAGES.heroRight}
+            alt=""
             loading="eager"
-            fetchpriority="high"
+            fetchPriority="high"
             style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.15, willChange: 'transform' }}
           />
         </div>
@@ -129,7 +123,7 @@ export default function Hero({ openCV }) {
           .hero-right-img {
             width: 100% !important;
           }
-          #about {
+          #hero {
             justify-content: flex-end !important;
             padding-bottom: 4rem !important;
           }

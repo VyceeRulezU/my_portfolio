@@ -2,18 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getAssetUrl } from '../utils/assetHelper';
-import { ALL_PROJECTS } from '../data/projectsData';
 import { ChevronLeft, ChevronRight, X, ArrowLeft, Lock, Mail } from 'lucide-react';
-import LogoWhite from '../assets/VI_Logo_White.png';
-import LogoBlack from '../assets/VI_Black_Logo.png';
 import { PortableText } from '@portabletext/react';
-import { client, urlFor } from '../utils/sanity';
+import { SITE_IMAGES } from '../utils/assetHelper';
+import SmartImg from '../components/SmartImg';
+import { getProjects, getProject, getGallery, unlockProject } from '../utils/projects';
 
 const GATED_EMAIL = "ironaliv@gmail.com";
-
-
-const GALLERY_API = import.meta.env.VITE_GALLERY_API_URL;
 
 const SECTIONS = [
   { id: 'snapshot', label: 'Project Snapshot' },
@@ -24,21 +19,35 @@ const SECTIONS = [
   { id: 'gallery', label: 'Process Gallery', subtitle: 'Process & Artifacts' }
 ];
 
-export default function ProjectDetail() {
+const hasContent = (value) => (Array.isArray(value) ? value.length > 0 : Boolean(value));
+
+// Keyed by id so all per-project state resets when navigating between case studies.
+export default function ProjectDetailPage() {
   const { id } = useParams();
+  return <ProjectDetail key={id} id={id} />;
+}
+
+function ProjectDetail({ id }) {
   const [project, setProject] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [allProjects, setAllProjects] = useState([]);
+  const [galleryImages, setGalleryImages] = useState([]);
   const [activeSection, setActiveSection] = useState('');
   const [selectedImgIdx, setSelectedImgIdx] = useState(null);
-  const [galleryImages, setGalleryImages] = useState([]);
-  const [allProjects, setAllProjects] = useState([]);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
   const [passwordError, setPasswordError] = useState(false);
-  const [galleryLoading, setGalleryLoading] = useState(true);
-  const [loading, setLoading] = useState(true);
-  const handlePasswordSubmit = (e) => {
+  const [unlocking, setUnlocking] = useState(false);
+
+  const isLocked = Boolean(project?.isPrivate && !isUnlocked);
+
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault();
-    if (project?.password && passwordInput === project.password) {
+    setUnlocking(true);
+    const content = await unlockProject(id, passwordInput).catch(() => null);
+    setUnlocking(false);
+    if (content) {
+      setProject(prev => ({ ...prev, ...content }));
       setIsUnlocked(true);
       setPasswordError(false);
     } else {
@@ -47,111 +56,39 @@ export default function ProjectDetail() {
   };
 
   const nextImg = useCallback(() => {
-
-    setSelectedImgIdx(prev => prev !== null && galleryImages.length > 0
-      ? (prev + 1) % galleryImages.length
-      : prev
-    );
+    setSelectedImgIdx(prev => prev === null ? prev : (prev + 1) % galleryImages.length);
   }, [galleryImages.length]);
 
   const prevImg = useCallback(() => {
-    setSelectedImgIdx(prev => prev !== null && galleryImages.length > 0
-      ? (prev - 1 + galleryImages.length) % galleryImages.length
-      : prev
-    );
+    setSelectedImgIdx(prev => prev === null ? prev : (prev - 1 + galleryImages.length) % galleryImages.length);
   }, [galleryImages.length]);
 
   useEffect(() => {
-    const fetchAllProjects = async () => {
-      try {
-        const data = await client.fetch(`*[_type == "project"] | order(num asc)`);
-        const formatted = data.map(p => ({
-          ...p,
-          id: p.slug?.current || p._id,
-          img: p.img?.asset ? urlFor(p.img).url() : p.img,
-        }));
-        
-        // Merge with local fallback
-        const merged = [...formatted];
-        ALL_PROJECTS.forEach(local => {
-          if (!merged.find(p => p.id === local.id)) {
-            merged.push(local);
-          }
-        });
-        setAllProjects(merged);
-      } catch (err) {
-        console.error('Fetch all projects error:', err);
-      }
-    };
-    fetchAllProjects();
+    getProjects().then(setAllProjects);
   }, []);
 
   useEffect(() => {
-    const fetchProject = async () => {
-      setLoading(true);
-      try {
-        const sanityData = await client.fetch(`*[_type == "project" && slug.current == $slug][0]`, { slug: id });
-        console.log("Sanity Project Data:", sanityData);
-        
-        if (sanityData) {
-          const formatted = {
-            ...sanityData,
-            id: sanityData.slug.current,
-            isPrivate: sanityData.isPrivate || false,
-            password: sanityData.password || null,
-            img: sanityData.img?.asset ? urlFor(sanityData.img).url() : null,
-            processImages: sanityData.processImages?.filter(img => img?.asset) || [],
-            problemImages: sanityData.problemImages?.filter(img => img?.asset).map(img => urlFor(img).url()) || [],
-            solutionImages: sanityData.solutionImages?.filter(img => img?.asset).map(img => urlFor(img).url()) || [],
-            overviewImages: sanityData.overviewImages?.filter(img => img?.asset).map(img => urlFor(img).url()) || [],
-            impactImages: sanityData.impactImages?.filter(img => img?.asset).map(img => urlFor(img).url()) || []
-          };
-          setProject(formatted);
-          const processImageUrls = formatted.processImages.map(img => urlFor(img).url());
-          setGalleryImages(processImageUrls);
-          setGalleryLoading(false);
-          setLoading(false);
-          return;
-        }
-
-      } catch (err) {
-        console.error('Sanity detail fetch error:', err);
-      }
-      // 2. Fallback to local
-      const found = ALL_PROJECTS.find(p => p.id === id);
-      if (found) {
-        // Force salongrid to be private if it's falling back to local
-        if (id === 'salongrid') {
-          found.isPrivate = true;
-          found.password = "victor"; // Default fallback password
-        }
-        setProject(found);
-      }
-
-      
-      if (id && GALLERY_API) {
-        setGalleryLoading(true);
-        const folderMatch = found?.img?.match(/\/portfolio\/([^/]+)\//i);
-        const folderName = folderMatch ? folderMatch[1] : id;
-        fetch(`${GALLERY_API}?project=${folderName}`)
-          .then(r => r.json())
-          .then(data => {
-            setGalleryImages(data.images || []);
-          })
-          .catch(() => setGalleryImages([]))
-          .finally(() => setGalleryLoading(false));
-      } else {
-        setGalleryLoading(false);
-      }
-
+    let cancelled = false;
+    getProject(id).then((data) => {
+      if (cancelled) return;
+      setProject(data);
       setLoading(false);
-    };
+    });
 
-    fetchProject();
-    window.scrollTo(0, 0);
+    return () => { cancelled = true; };
   }, [id]);
 
   useEffect(() => {
+    if (!project || isLocked) return;
+    let cancelled = false;
+    getGallery(project).then((images) => {
+      if (!cancelled) setGalleryImages(images);
+    });
+    return () => { cancelled = true; };
+  }, [project, isLocked]);
+
+  useEffect(() => {
+    if (selectedImgIdx === null) return;
     const handleKeyDown = (e) => {
       if (e.key === 'ArrowRight') nextImg();
       if (e.key === 'ArrowLeft') prevImg();
@@ -159,42 +96,41 @@ export default function ProjectDetail() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [nextImg, prevImg]);
+  }, [selectedImgIdx, nextImg, prevImg]);
+
+  const visibleSections = project ? SECTIONS.filter((sec) => {
+    if (sec.id === 'snapshot') return true;
+    if (sec.id === 'gallery') return galleryImages.length > 0;
+    return hasContent(project[sec.id]) || hasContent(project[`${sec.id}Images`]);
+  }) : [];
+  const visibleSectionIds = visibleSections.map((sec) => sec.id).join(',');
 
   useEffect(() => {
-    if (!project || (project.isPrivate && !isUnlocked)) return;
+    if (!visibleSectionIds || isLocked) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
-          }
+          if (entry.isIntersecting) setActiveSection(entry.target.id);
         });
       },
       { rootMargin: '-20% 0px -60% 0px' }
     );
 
-    const timeoutId = setTimeout(() => {
-      SECTIONS.forEach((sec) => {
-        const el = document.getElementById(sec.id);
-        if (el) observer.observe(el);
-      });
-    }, 100);
+    visibleSectionIds.split(',').forEach((secId) => {
+      const el = document.getElementById(secId);
+      if (el) observer.observe(el);
+    });
 
-    return () => {
-      clearTimeout(timeoutId);
-      observer.disconnect();
-    };
-  }, [project, isUnlocked]);
+    return () => observer.disconnect();
+  }, [visibleSectionIds, isLocked]);
 
   if (loading) {
     const isDarkTheme = document.documentElement.classList.contains('dark-theme');
-    const logoSrc = isDarkTheme ? LogoWhite : LogoBlack;
     return (
       <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)' }}>
         <motion.img
-          src={logoSrc}
+          src={isDarkTheme ? SITE_IMAGES.logoWhite : SITE_IMAGES.logoBlack}
           alt="Loading"
           style={{ height: '6rem', width: 'auto' }}
           animate={{ opacity: [1, 0.3, 1] }}
@@ -210,6 +146,12 @@ export default function ProjectDetail() {
     </div>
   );
 
+  const snapshot = [
+    { label: 'ROLE', value: project.role },
+    { label: 'YEAR', value: project.year },
+    { label: 'TYPE', value: project.type === 'case' ? 'Case Study' : project.type },
+  ].filter((item) => item.value);
+
   return (
     <section className="page-container" style={{ paddingTop: '12rem', paddingBottom: '8rem', color: 'var(--text-primary)' }}>
       <style>{`
@@ -222,16 +164,17 @@ export default function ProjectDetail() {
         .toc-subtitle { font-size: 0.65rem; opacity: 0.5; font-weight: 400; display: block; }
         .toc-link:hover, .toc-link.active { color: var(--text-primary); }
         .section-block { margin-bottom: 10rem; scroll-margin-top: 10rem; }
-        .section-images { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-top: 3rem; }
+        .section-images { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); gap: 1.5rem; margin-top: 3rem; }
         .section-image-card { border-radius: 24px; overflow: hidden; background: var(--bg-secondary); border: 1px solid var(--border-color); }
         .section-image-card img { width: 100%; height: auto; display: block; }
-        
-        .project-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 2rem; margin-bottom: 6rem; flex-wrap: wrap; }
-        .live-btn { background: var(--text-primary); color: var(--bg-primary); padding: 1rem 2rem; border-radius: 99px; text-decoration: none; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; transition: all 0.3s; }
-        .live-btn:hover { opacity: 0.9; transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
 
-        .snapshot-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2.5rem; padding: 3rem 0; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); margin-bottom: 6rem; }
-        
+        .project-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 2rem; margin-bottom: 6rem; flex-wrap: wrap; }
+        .live-btn { background: var(--text-primary); color: var(--bg-primary); padding: 1rem 2rem; border-radius: 99px; border: none; cursor: pointer; text-decoration: none; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; transition: all 0.3s; }
+        .live-btn:hover { opacity: 0.9; transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .live-btn:disabled { opacity: 0.6; cursor: wait; transform: none; }
+
+        .snapshot-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2.5rem; padding: 3rem 0; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); margin-bottom: 6rem; scroll-margin-top: 10rem; }
+
         .back-to-work-link { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-tertiary); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; text-decoration: none; transition: color 0.3s ease; }
         .back-to-work-link:hover { color: var(--text-primary); }
 
@@ -239,18 +182,29 @@ export default function ProjectDetail() {
         .section-text-content ol { list-style-type: decimal; margin-left: 1.5rem; margin-bottom: 1.5rem; }
         .section-text-content li { margin-bottom: 0.5rem; }
 
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 1.5rem; }
+        .gallery-item { border: none; padding: 0; border-radius: 16px; overflow: hidden; cursor: pointer; aspect-ratio: 16/9; background: var(--bg-secondary); }
+        .gallery-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+        .lightbox-btn { position: absolute; background: rgba(255,255,255,0.1); border: none; color: white; border-radius: 50%; width: 44px; height: 44px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .lightbox-btn:hover { background: rgba(255,255,255,0.2); }
+
         .other-works-section { margin-top: 15rem; padding-top: 8rem; border-top: 1px solid var(--border-color); }
-        .other-works-header { display: flex; justify-content: space-between; align-items: center; marginBottom: 5rem; margin-bottom: 4rem; }
+        .other-works-header { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 4rem; }
         .other-works-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.5rem; }
-        .work-card { text-decoration: none; color: inherit; group: hover; }
+        .work-card { text-decoration: none; color: inherit; }
         .work-card-img { width: 100%; aspect-ratio: 16/10; border-radius: 20px; overflow: hidden; background: var(--bg-secondary); margin-bottom: 1.5rem; border: 1px solid var(--border-color); }
         .work-card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
         .work-card:hover .work-card-img img { transform: scale(1.05); }
         .work-card-tag { color: #ff3e3e; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.5rem; display: block; }
-        .work-card-title { font-size: 1.5rem; font-weight: 600; font-family: 'Space Grotesk', sans-serif; display: flex; justify-content: space-between; align-items: center; }
-        .work-card-arrow { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border-color); display: flex; alignItems: center; justify-content: center; opacity: 0.3; transition: all 0.3s; }
+        .work-card-title { font-size: 1.5rem; font-weight: 600; font-family: 'Space Grotesk', sans-serif; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+        .work-card-arrow { width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; opacity: 0.3; transition: all 0.3s; }
         .work-card:hover .work-card-arrow { opacity: 1; background: var(--text-primary); color: var(--bg-primary); transform: rotate(-45deg); }
 
+        @media (max-width: 1200px) {
+          .case-study-layout { flex-direction: column; gap: 4rem; }
+          .case-study-sidebar { display: none; }
+        }
         @media (max-width: 1024px) {
           .other-works-grid { grid-template-columns: repeat(2, 1fr); }
         }
@@ -258,58 +212,49 @@ export default function ProjectDetail() {
           .other-works-grid { grid-template-columns: 1fr; }
           .other-works-section { margin-top: 10rem; }
         }
-
-        @media (max-width: 1200px) {
-          .case-study-layout { flex-direction: column; gap: 4rem; }
-          .case-study-sidebar { display: none; }
-        }
       `}</style>
 
       <div style={{ maxWidth: '1800px', margin: '0 auto', padding: '0 5vw' }}>
-        
+
         {/* Navigation */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: '4rem' }}>
-           <Link to="/#projects" className="back-to-work-link">
-              <ArrowLeft size={14} /> BACK TO WORK
-           </Link>
+          <Link to="/#projects" className="back-to-work-link">
+            <ArrowLeft size={14} /> BACK TO WORK
+          </Link>
         </motion.div>
 
         {/* Header with Title and Button */}
         <div className="project-header">
-           <div style={{ flex: 1 }}>
-              <div style={{ color: 'var(--text-tertiary)', fontSize: '0.65rem', fontWeight: '700', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '1.5rem' }}>
-                 / CASE STUDY / {project.title}
-              </div>
-              <motion.h1 
-                initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}
-                style={{ fontSize: 'clamp(3rem, 7vw, 6rem)', fontWeight: '700', lineHeight: '0.95', letterSpacing: '-0.04em', fontFamily: "'Space Grotesk', sans-serif" }}
-              >
-                 {project.headline}
-              </motion.h1>
-           </div>
-           
-           <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
-             {project.url && project.url !== "#" && (
-               <motion.a 
-                 href={project.url} target="_blank" rel="noopener noreferrer" className="live-btn"
-                 initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.4 }}
-               >
-                  View Live Project ↗
-               </motion.a>
-             )}
+          <div style={{ flex: 1 }}>
+            <div style={{ color: 'var(--text-tertiary)', fontSize: '0.65rem', fontWeight: '700', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '1.5rem' }}>
+              / CASE STUDY / {project.title}
+            </div>
+            <motion.h1
+              initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}
+              style={{ fontSize: 'clamp(3rem, 7vw, 6rem)', fontWeight: '700', lineHeight: '0.95', letterSpacing: '-0.04em', fontFamily: "'Space Grotesk', sans-serif" }}
+            >
+              {project.headline || project.title}
+            </motion.h1>
+          </div>
 
-           </div>
+          {project.url && project.url !== "#" && (
+            <motion.a
+              href={project.url} target="_blank" rel="noopener noreferrer" className="live-btn"
+              initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.4 }}
+            >
+              View Live Project ↗
+            </motion.a>
+          )}
         </div>
 
-
         {/* Gated Access Lock Screen */}
-        {project.isPrivate && !isUnlocked ? (
-          <motion.div 
+        {isLocked ? (
+          <motion.div
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            style={{ 
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', 
-              padding: '8rem 2rem', background: 'var(--bg-secondary)', borderRadius: '32px', 
-              border: '1px solid var(--border-color)', textAlign: 'center', margin: '4rem 0' 
+            style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              padding: '8rem 2rem', background: 'var(--bg-secondary)', borderRadius: '32px',
+              border: '1px solid var(--border-color)', textAlign: 'center', margin: '4rem 0'
             }}
           >
             <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '2rem', border: '1px solid var(--border-color)' }}>
@@ -324,121 +269,123 @@ export default function ProjectDetail() {
               <a href={`mailto:${GATED_EMAIL}`} className="live-btn" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <Mail size={16} /> Contact for Access
               </a>
-              
-              {project.password && (
+
+              {project.hasPassword && (
                 <form onSubmit={handlePasswordSubmit} style={{ display: 'flex', gap: '0.5rem' }}>
-                  <input 
-                    type="password" 
-                    placeholder="Enter Password" 
+                  <input
+                    type="password"
+                    placeholder="Enter Password"
+                    aria-label="Case study password"
                     value={passwordInput}
                     onChange={(e) => setPasswordInput(e.target.value)}
-                    style={{ 
-                      background: 'var(--bg-primary)', border: `1px solid ${passwordError ? '#ff4d4d' : 'var(--border-color)'}`, 
+                    style={{
+                      background: 'var(--bg-primary)', border: `1px solid ${passwordError ? '#ff4d4d' : 'var(--border-color)'}`,
                       padding: '0 1.5rem', borderRadius: '99px', fontSize: '0.8rem', color: 'var(--text-primary)', outline: 'none'
                     }}
                   />
-                  <button type="submit" className="live-btn" style={{ background: 'var(--text-secondary)' }}>Unlock</button>
+                  <button type="submit" className="live-btn" disabled={unlocking || !passwordInput} style={{ background: 'var(--text-secondary)' }}>
+                    {unlocking ? 'Checking…' : 'Unlock'}
+                  </button>
                 </form>
               )}
             </div>
-            {passwordError && <div style={{ color: '#ff4d4d', fontSize: '0.7rem', marginTop: '1rem', fontWeight: '600' }}>Incorrect password. Please try again.</div>}
+            {passwordError && <div role="alert" style={{ color: '#ff4d4d', fontSize: '0.7rem', marginTop: '1rem', fontWeight: '600' }}>Incorrect password. Please try again.</div>}
           </motion.div>
         ) : (
           <>
             {/* Hero Image */}
-            <div style={{ width: '100%', marginBottom: '10rem', borderRadius: '32px', overflow: 'hidden', background: 'var(--border-color)' }}>
-               <img src={getAssetUrl(project.img)} alt={project.title} style={{ width: '100%', height: 'auto', display: 'block' }} />
-            </div>
+            {project.heroImg && (
+              <div style={{ width: '100%', marginBottom: '10rem', borderRadius: '32px', overflow: 'hidden', background: 'var(--border-color)' }}>
+                <SmartImg src={project.heroImg} width={1920} alt={project.title} loading="eager" fetchPriority="high" style={{ width: '100%', height: 'auto', display: 'block' }} />
+              </div>
+            )}
 
-        <div className="case-study-layout">
-          {/* Main Content */}
-          <div className="case-study-content">
-            {SECTIONS.map((sec) => {
-              if (sec.id === 'snapshot') return (
-                <div key={sec.id} id={sec.id} className="snapshot-grid">
-                  <div>
-                    <div style={{ fontSize: '0.6rem', fontWeight: '700', color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '0.1em' }}>ROLE</div>
-                    <div style={{ fontWeight: '600', fontSize: '0.9rem' }}>{project.role}</div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '0.6rem', fontWeight: '700', color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '0.1em' }}>YEAR</div>
-                    <div style={{ fontWeight: '600', fontSize: '0.9rem' }}>{project.year}</div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '0.6rem', fontWeight: '700', color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '0.1em' }}>TYPE</div>
-                    <div style={{ fontWeight: '600', fontSize: '0.9rem', textTransform: 'capitalize' }}>{project.type === 'case' ? 'Case Study' : project.type}</div>
-                  </div>
-                </div>
-              );
-
-              const content = project[sec.id];
-              const images = project[`${sec.id}Images`];
-              
-              if (sec.id === 'gallery') return (
-                <div key={sec.id} id={sec.id} className="section-block">
-                  <h2 style={{ fontSize: '2.5rem', fontWeight: '700', marginBottom: '1rem', fontFamily: "'Space Grotesk', sans-serif" }}>{sec.label}</h2>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '3rem', letterSpacing: '0.05em' }}>{sec.subtitle}</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
-                    {galleryImages.map((img, idx) => (
-                      <motion.div key={idx} whileHover={{ scale: 1.02 }} onClick={() => setSelectedImgIdx(idx)} style={{ borderRadius: '16px', overflow: 'hidden', cursor: 'pointer', aspectRatio: '16/9', background: 'var(--bg-secondary)' }}>
-                        <img src={img} alt={`Process ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-              );
-
-              return (
-                <div key={sec.id} id={sec.id} className="section-block">
-                  <h2 style={{ fontSize: '2.5rem', fontWeight: '700', marginBottom: '1rem', fontFamily: "'Space Grotesk', sans-serif" }}>{sec.label}</h2>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '2.5rem', letterSpacing: '0.05em' }}>{sec.subtitle}</div>
-                  
-                  <div className="section-text-content" style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', lineHeight: '1.8', maxWidth: '900px' }}>
-                    {Array.isArray(content) ? (
-                      <PortableText value={content} />
-                    ) : (
-                      <p>{content}</p>
-                    )}
-                  </div>
-                  
-                  {images && images.length > 0 && (
-                    <div className="section-images">
-                      {images.map((img, idx) => (
-                        <div key={idx} className="section-image-card">
-                          <img src={img} alt={`${sec.label} image ${idx + 1}`} />
+            <div className="case-study-layout">
+              {/* Main Content */}
+              <div className="case-study-content">
+                {visibleSections.map((sec) => {
+                  if (sec.id === 'snapshot') return (
+                    <div key={sec.id} id={sec.id} className="snapshot-grid">
+                      {snapshot.map((item) => (
+                        <div key={item.label}>
+                          <div style={{ fontSize: '0.6rem', fontWeight: '700', color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '0.75rem', letterSpacing: '0.1em' }}>{item.label}</div>
+                          <div style={{ fontWeight: '600', fontSize: '0.9rem', textTransform: item.label === 'TYPE' ? 'capitalize' : 'none' }}>{item.value}</div>
                         </div>
                       ))}
                     </div>
-                  )}
-                </div>
-              );
+                  );
 
-            })}
-          </div>
+                  if (sec.id === 'gallery') return (
+                    <div key={sec.id} id={sec.id} className="section-block">
+                      <h2 style={{ fontSize: '2.5rem', fontWeight: '700', marginBottom: '1rem', fontFamily: "'Space Grotesk', sans-serif" }}>{sec.label}</h2>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '3rem', letterSpacing: '0.05em' }}>{sec.subtitle}</div>
+                      <div className="gallery-grid">
+                        {galleryImages.map((img, idx) => (
+                          <motion.button
+                            key={img.full}
+                            type="button"
+                            className="gallery-item"
+                            whileHover={{ scale: 1.02 }}
+                            onClick={() => setSelectedImgIdx(idx)}
+                            aria-label={`Open ${project.title} image ${idx + 1} of ${galleryImages.length}`}
+                          >
+                            <SmartImg src={img.thumb} width={800} />
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+                  );
 
-          {/* Sidebar TOC */}
-          <aside className="case-study-sidebar">
-            <div className="sticky-toc">
-              <div style={{ fontSize: '0.6rem', fontWeight: '800', color: 'var(--text-tertiary)', letterSpacing: '0.2em', marginBottom: '1.5rem' }}>CONTENTS</div>
-              {SECTIONS.map(sec => (
-                <a key={sec.id} href={`#${sec.id}`} className={`toc-link ${activeSection === sec.id ? 'active' : ''}`}>
-                  <span className="toc-label">{sec.label}</span>
-                  {sec.subtitle && <span className="toc-subtitle">{sec.subtitle}</span>}
-                </a>
-              ))}
+                  const content = project[sec.id];
+                  const images = project[`${sec.id}Images`];
+
+                  return (
+                    <div key={sec.id} id={sec.id} className="section-block">
+                      <h2 style={{ fontSize: '2.5rem', fontWeight: '700', marginBottom: '1rem', fontFamily: "'Space Grotesk', sans-serif" }}>{sec.label}</h2>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '2.5rem', letterSpacing: '0.05em' }}>{sec.subtitle}</div>
+
+                      {hasContent(content) && (
+                        <div className="section-text-content" style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', lineHeight: '1.8', maxWidth: '900px' }}>
+                          {Array.isArray(content) ? <PortableText value={content} /> : <p>{content}</p>}
+                        </div>
+                      )}
+
+                      {images?.length > 0 && (
+                        <div className="section-images">
+                          {images.map((img, idx) => (
+                            <div key={img} className="section-image-card">
+                              <img src={img} alt={`${sec.label} ${idx + 1}`} loading="lazy" decoding="async" />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Sidebar TOC */}
+              <aside className="case-study-sidebar">
+                <nav className="sticky-toc" aria-label="Case study contents">
+                  <div style={{ fontSize: '0.6rem', fontWeight: '800', color: 'var(--text-tertiary)', letterSpacing: '0.2em', marginBottom: '1.5rem' }}>CONTENTS</div>
+                  {visibleSections.map(sec => (
+                    <a key={sec.id} href={`#${sec.id}`} className={`toc-link ${activeSection === sec.id ? 'active' : ''}`}>
+                      <span className="toc-label">{sec.label}</span>
+                      {sec.subtitle && <span className="toc-subtitle">{sec.subtitle}</span>}
+                    </a>
+                  ))}
+                </nav>
+              </aside>
             </div>
-          </aside>
-          </div>
-        </>
-      )}
-
+          </>
+        )}
 
         {/* View Other Works Section */}
         <section className="other-works-section">
           <div className="other-works-header">
             <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: '700', fontFamily: "'Space Grotesk', sans-serif" }}>View other works</h2>
             <Link to="/#projects" className="live-btn" style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', fontSize: '0.6rem' }}>
-              Goto works
+              All works
             </Link>
           </div>
 
@@ -447,10 +394,10 @@ export default function ProjectDetail() {
               .filter(p => p.id !== id)
               .slice(0, 3)
               .map((p, idx) => (
-                <motion.div key={p.id} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.1 }}>
+                <motion.div key={p.id} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.1 }}>
                   <Link to={`/work/${p.id}`} className="work-card">
                     <div className="work-card-img">
-                      <img src={getAssetUrl(p.img)} alt={p.title} />
+                      <SmartImg src={p.img} width={800} alt={p.title} />
                     </div>
                     <span className="work-card-tag">{p.role || 'Case Study'}</span>
                     <div className="work-card-title">
@@ -465,27 +412,41 @@ export default function ProjectDetail() {
           </div>
         </section>
 
-
-
-        {/* Lightbox - keeping existing functionality */}
+        {/* Lightbox */}
         {createPortal(
           <AnimatePresence>
             {selectedImgIdx !== null && galleryImages.length > 0 && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0, 0, 0, 0.88)', backdropFilter: 'blur(16px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}
+              <motion.div
+                role="dialog" aria-modal="true" aria-label="Image viewer"
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                style={{ position: 'fixed', inset: 0, background: 'rgba(0, 0, 0, 0.88)', backdropFilter: 'blur(16px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}
                 onClick={() => setSelectedImgIdx(null)}
               >
-                <button onClick={(e) => { e.stopPropagation(); setSelectedImgIdx(null); }} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '50%', width: '44px', height: '44px', cursor: 'pointer' }}><X size={18} /></button>
-                <img src={galleryImages[selectedImgIdx]} style={{ maxHeight: '85%', maxWidth: '85%', objectFit: 'contain', borderRadius: '12px' }} />
+                <button type="button" className="lightbox-btn" aria-label="Close" onClick={(e) => { e.stopPropagation(); setSelectedImgIdx(null); }} style={{ top: '1.5rem', right: '1.5rem' }}><X size={18} /></button>
+                {galleryImages.length > 1 && (
+                  <>
+                    <button type="button" className="lightbox-btn" aria-label="Previous image" onClick={(e) => { e.stopPropagation(); prevImg(); }} style={{ left: '1.5rem', top: '50%', transform: 'translateY(-50%)' }}><ChevronLeft size={22} /></button>
+                    <button type="button" className="lightbox-btn" aria-label="Next image" onClick={(e) => { e.stopPropagation(); nextImg(); }} style={{ right: '1.5rem', top: '50%', transform: 'translateY(-50%)' }}><ChevronRight size={22} /></button>
+                  </>
+                )}
+                <SmartImg
+                  src={galleryImages[selectedImgIdx].full}
+                  width={1920}
+                  loading="eager"
+                  alt={`${project.title} image ${selectedImgIdx + 1} of ${galleryImages.length}`}
+                  onClick={(e) => e.stopPropagation()}
+                  style={{ maxHeight: '85%', maxWidth: '85%', objectFit: 'contain', borderRadius: '12px' }}
+                />
+                <div style={{ position: 'absolute', bottom: '1.5rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em' }}>
+                  {selectedImgIdx + 1} / {galleryImages.length}
+                </div>
               </motion.div>
             )}
           </AnimatePresence>,
           document.body
         )}
 
-
       </div>
     </section>
   );
 }
-

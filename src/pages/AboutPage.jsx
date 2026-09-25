@@ -26,13 +26,6 @@ const JOURNEY = [
   { year: "2014-2020", title: "Where it began", sub: "VISUAL DESIGN / BRANDING / WEB", desc: "Started the creative journey focusing on visual aesthetics, typography, and foundational web design." }
 ];
 
-const CREDENTIALS = [
-  { title: "UX UI Design Certificate", org: "DEV AND DESIGN", year: "2023" },
-  { title: "JavaScript", org: "DEV AND DESIGN", year: "2024" },
-  { title: "Frontend Engineering", org: "DEV AND DESIGN", year: "2025" },
-  { title: "Google UX Design Professional", org: "COURSERA", year: "2021" }
-];
-
 export default function AboutPage() {
   return (
     <section className="page-container" style={{ paddingTop: '12rem', paddingBottom: '8rem', color: 'var(--text-primary)' }}>
@@ -137,7 +130,7 @@ export default function AboutPage() {
                  <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '2rem' }}>
                     <p style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', lineHeight: '1.7' }}>
                        I specialize in designing and building products that balance aesthetic beauty with engineering rigor. 
-                       From **scalable design systems** to **production-ready React components**, I ensure every pixel serves a purpose.
+                       From <strong>scalable design systems</strong> to <strong>production-ready React components</strong>, I ensure every pixel serves a purpose.
                     </p>
                  </div>
               </div>

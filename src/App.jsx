@@ -28,18 +28,19 @@ function ScrollToTop() {
   return null;
 }
 
-function App() {
-  const [theme, setTheme] = useState('dark-theme');
-  const [isCVOpen, setIsCVOpen] = useState(false);
-
-  useEffect(() => {
+function getInitialTheme() {
+  try {
     const savedTheme = localStorage.getItem('portfolio-theme');
-    if (savedTheme) {
-      setTheme(savedTheme);
-    } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
-      setTheme('');
-    }
-  }, []);
+    if (savedTheme !== null) return savedTheme;
+  } catch {
+    // Storage unavailable (private mode etc.) — fall through to system preference.
+  }
+  return window.matchMedia('(prefers-color-scheme: light)').matches ? '' : 'dark-theme';
+}
+
+function App() {
+  const [theme, setTheme] = useState(getInitialTheme);
+  const [isCVOpen, setIsCVOpen] = useState(false);
 
   useEffect(() => {
     if (theme === 'dark-theme') {
@@ -52,7 +53,11 @@ function App() {
   const toggleTheme = () => {
     const newTheme = theme === 'dark-theme' ? '' : 'dark-theme';
     setTheme(newTheme);
-    localStorage.setItem('portfolio-theme', newTheme);
+    try {
+      localStorage.setItem('portfolio-theme', newTheme);
+    } catch {
+      // Preference just won't persist.
+    }
   };
 
   const openCV = () => setIsCVOpen(true);

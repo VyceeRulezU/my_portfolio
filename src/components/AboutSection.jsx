@@ -9,7 +9,7 @@ const BELIEFS = [
   {
     num: "02",
     title: "Strategy is meaningless without execution.",
-    desc: "Strategy is meaningless without execution. I run lean — research fast, prototype early, ship often, measure ruthlessly. Kelick went from concept to paying customers without a full engineering team because I refused to separate designing from building."
+    desc: "I run lean — research fast, prototype early, ship often, measure ruthlessly. Governance Resource Hub went from concept to a live platform without a full engineering team because I refused to separate designing from building."
   },
   {
     num: "03",
