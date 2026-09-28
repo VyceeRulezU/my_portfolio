@@ -27,7 +27,7 @@ export default defineConfig([
     },
   },
   {
-    files: ['api/**/*.js', 'scripts/**/*.js', '*.config.js', 'sanity.cli.js'],
+    files: ['api/**/*.js', 'scripts/**/*.js', '*.js'],
     languageOptions: {
       globals: globals.node,
     },
