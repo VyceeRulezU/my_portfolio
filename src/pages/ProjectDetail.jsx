@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
-import { createPortal } from 'react-dom';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, X, ArrowLeft, Lock, Mail } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ArrowLeft, Lock, Mail } from 'lucide-react';
 import { PortableText } from '@portabletext/react';
 import { SITE_IMAGES } from '../utils/assetHelper';
 import SmartImg from '../components/SmartImg';
+import ImageViewer from '../components/ImageViewer';
 import { PROJECTS, findProject, getProject, getGallery, unlockProject } from '../utils/projects';
 
 const GATED_EMAIL = "ironaliv@gmail.com";
@@ -37,7 +37,7 @@ function ProjectDetail({ id }) {
   const [loading, setLoading] = useState(() => !findProject(id));
   const [galleryImages, setGalleryImages] = useState([]);
   const [activeSection, setActiveSection] = useState('');
-  const [selectedImgIdx, setSelectedImgIdx] = useState(null);
+  const [viewerIndex, setViewerIndex] = useState(null);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
   const [passwordError, setPasswordError] = useState(false);
@@ -58,14 +58,6 @@ function ProjectDetail({ id }) {
       setPasswordError(true);
     }
   };
-
-  const nextImg = useCallback(() => {
-    setSelectedImgIdx(prev => prev === null ? prev : (prev + 1) % galleryImages.length);
-  }, [galleryImages.length]);
-
-  const prevImg = useCallback(() => {
-    setSelectedImgIdx(prev => prev === null ? prev : (prev - 1 + galleryImages.length) % galleryImages.length);
-  }, [galleryImages.length]);
 
   useEffect(() => {
     if (!loading) return;
@@ -88,16 +80,25 @@ function ProjectDetail({ id }) {
     return () => { cancelled = true; };
   }, [project, isLocked]);
 
-  useEffect(() => {
-    if (selectedImgIdx === null) return;
-    const handleKeyDown = (e) => {
-      if (e.key === 'ArrowRight') nextImg();
-      if (e.key === 'ArrowLeft') prevImg();
-      if (e.key === 'Escape') setSelectedImgIdx(null);
+  // Every image on the page, in reading order (hero, section images, gallery), for the viewer.
+  // viewerStart maps a group ('hero', 'overview', ..., 'gallery') to its first index in the list.
+  const { viewerImages, viewerStart } = useMemo(() => {
+    const list = [];
+    const start = {};
+    if (!project || isLocked) return { viewerImages: list, viewerStart: start };
+    const add = (group, srcs, label) => {
+      start[group] = list.length;
+      srcs.forEach((src, i) => list.push({ src, caption: srcs.length > 1 ? `${label} · ${i + 1}` : label }));
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedImgIdx, nextImg, prevImg]);
+    if (project.heroImg) add('hero', [project.heroImg], project.title);
+    SECTIONS.filter((sec) => !['snapshot', 'gallery'].includes(sec.id)).forEach((sec) => {
+      add(sec.id, project[`${sec.id}Images`] || [], sec.label);
+    });
+    add('gallery', galleryImages.map((img) => img.full), 'Process Gallery');
+    return { viewerImages: list, viewerStart: start };
+  }, [project, isLocked, galleryImages]);
+
+  const openViewer = (group, i = 0) => setViewerIndex(viewerStart[group] + i);
 
   const visibleSections = project ? SECTIONS.filter((sec) => {
     if (sec.id === 'snapshot') return true;
@@ -166,7 +167,7 @@ function ProjectDetail({ id }) {
         .toc-link:hover, .toc-link.active { color: var(--text-primary); }
         .section-block { margin-bottom: 10rem; scroll-margin-top: 10rem; }
         .section-images { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); gap: 1.5rem; margin-top: 3rem; }
-        .section-image-card { border-radius: 24px; overflow: hidden; background: var(--bg-secondary); border: 1px solid var(--border-color); }
+        .section-image-card { width: 100%; border-radius: 24px; overflow: hidden; background: var(--bg-secondary); border: 1px solid var(--border-color); }
         .section-image-card img { width: 100%; height: auto; display: block; }
 
         .project-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 2rem; margin-bottom: 6rem; flex-wrap: wrap; }
@@ -184,11 +185,11 @@ function ProjectDetail({ id }) {
         .section-text-content li { margin-bottom: 0.5rem; }
 
         .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 1.5rem; }
-        .gallery-item { border: none; padding: 0; border-radius: 16px; overflow: hidden; cursor: pointer; aspect-ratio: 16/9; background: var(--bg-secondary); }
+        .gallery-item { border: none; padding: 0; border-radius: 16px; overflow: hidden; cursor: zoom-in; aspect-ratio: 16/9; background: var(--bg-secondary); }
         .gallery-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-        .lightbox-btn { position: absolute; background: rgba(255,255,255,0.1); border: none; color: white; border-radius: 50%; width: 44px; height: 44px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
-        .lightbox-btn:hover { background: rgba(255,255,255,0.2); }
+        .zoomable { display: block; padding: 0; border: none; font: inherit; color: inherit; cursor: zoom-in; text-align: left; }
+        .zoomable:focus-visible { outline: 2px solid var(--text-primary); outline-offset: 4px; }
 
         .other-works-section { margin-top: 15rem; padding-top: 8rem; border-top: 1px solid var(--border-color); }
         .other-works-header { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 4rem; }
@@ -296,9 +297,15 @@ function ProjectDetail({ id }) {
           <>
             {/* Hero Image */}
             {project.heroImg && (
-              <div style={{ width: '100%', marginBottom: '10rem', borderRadius: '32px', overflow: 'hidden', background: 'var(--border-color)' }}>
+              <button
+                type="button"
+                className="zoomable"
+                onClick={() => openViewer('hero')}
+                aria-label={`View ${project.title} cover image`}
+                style={{ width: '100%', marginBottom: '10rem', borderRadius: '32px', overflow: 'hidden', background: 'var(--border-color)' }}
+              >
                 <SmartImg src={project.heroImg} width={1920} alt={project.title} loading="eager" fetchPriority="high" style={{ width: '100%', height: 'auto', display: 'block' }} />
-              </div>
+              </button>
             )}
 
             <div className="case-study-layout">
@@ -327,7 +334,7 @@ function ProjectDetail({ id }) {
                             type="button"
                             className="gallery-item"
                             whileHover={{ scale: 1.02 }}
-                            onClick={() => setSelectedImgIdx(idx)}
+                            onClick={() => openViewer('gallery', idx)}
                             aria-label={`Open ${project.title} image ${idx + 1} of ${galleryImages.length}`}
                           >
                             <SmartImg src={img.thumb} width={800} />
@@ -357,9 +364,15 @@ function ProjectDetail({ id }) {
                       {images?.length > 0 && (
                         <div className="section-images">
                           {images.map((img, idx) => (
-                            <div key={img} className="section-image-card">
-                              <img src={img} alt={`${sec.label} ${idx + 1}`} loading="lazy" decoding="async" />
-                            </div>
+                            <button
+                              key={img}
+                              type="button"
+                              className="section-image-card zoomable"
+                              onClick={() => openViewer(sec.id, idx)}
+                              aria-label={`View ${sec.label} image ${idx + 1} of ${images.length}`}
+                            >
+                              <SmartImg src={img} width={1920} alt={`${sec.label} ${idx + 1}`} />
+                            </button>
                           ))}
                         </div>
                       )}
@@ -416,39 +429,12 @@ function ProjectDetail({ id }) {
           </div>
         </section>
 
-        {/* Lightbox */}
-        {createPortal(
-          <AnimatePresence>
-            {selectedImgIdx !== null && galleryImages.length > 0 && (
-              <motion.div
-                role="dialog" aria-modal="true" aria-label="Image viewer"
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                style={{ position: 'fixed', inset: 0, background: 'rgba(0, 0, 0, 0.88)', backdropFilter: 'blur(16px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}
-                onClick={() => setSelectedImgIdx(null)}
-              >
-                <button type="button" className="lightbox-btn" aria-label="Close" onClick={(e) => { e.stopPropagation(); setSelectedImgIdx(null); }} style={{ top: '1.5rem', right: '1.5rem' }}><X size={18} /></button>
-                {galleryImages.length > 1 && (
-                  <>
-                    <button type="button" className="lightbox-btn" aria-label="Previous image" onClick={(e) => { e.stopPropagation(); prevImg(); }} style={{ left: '1.5rem', top: '50%', transform: 'translateY(-50%)' }}><ChevronLeft size={22} /></button>
-                    <button type="button" className="lightbox-btn" aria-label="Next image" onClick={(e) => { e.stopPropagation(); nextImg(); }} style={{ right: '1.5rem', top: '50%', transform: 'translateY(-50%)' }}><ChevronRight size={22} /></button>
-                  </>
-                )}
-                <SmartImg
-                  src={galleryImages[selectedImgIdx].full}
-                  width={1920}
-                  loading="eager"
-                  alt={`${project.title} image ${selectedImgIdx + 1} of ${galleryImages.length}`}
-                  onClick={(e) => e.stopPropagation()}
-                  style={{ maxHeight: '85%', maxWidth: '85%', objectFit: 'contain', borderRadius: '12px' }}
-                />
-                <div style={{ position: 'absolute', bottom: '1.5rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em' }}>
-                  {selectedImgIdx + 1} / {galleryImages.length}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>,
-          document.body
-        )}
+        <ImageViewer
+          images={viewerImages}
+          index={viewerIndex}
+          onIndexChange={setViewerIndex}
+          onClose={() => setViewerIndex(null)}
+        />
 
       </div>
     </section>

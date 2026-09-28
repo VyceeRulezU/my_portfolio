@@ -5,13 +5,24 @@ import { parseProjectFile } from './scripts/lib/projectFile.js'
 
 // Compiles content/projects/*.md into { ...frontmatter, html: { overview, problem, ... } } at build time.
 // Private projects ship without their case-study body (it's served by /api/unlock instead).
+// Leftover "TODO:" placeholders (from npm run project:add) warn in dev and fail the production build.
 function projectContent() {
+  let isBuild = false;
   return {
     name: 'project-content',
+    configResolved(config) {
+      isBuild = config.command === 'build';
+    },
     transform(source, id) {
       const file = id.replace(/\\/g, '/');
       if (!/\/content\/projects\/[^/]+\.md$/.test(file)) return null;
-      const { data, sections } = parseProjectFile(source, file.split('/').pop());
+      const name = file.split('/').pop();
+      if (source.includes('TODO:')) {
+        const message = `${name} still has TODO: placeholders`;
+        if (isBuild) this.error(message);
+        else this.warn(message);
+      }
+      const { data, sections } = parseProjectFile(source, name);
       const html = data.private
         ? {}
         : Object.fromEntries(Object.entries(sections).map(([key, md]) => [key, marked.parse(md)]));

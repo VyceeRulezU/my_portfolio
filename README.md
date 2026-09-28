@@ -30,6 +30,7 @@ npm run studio         # Sanity Studio at http://localhost:3333
 | `npm run r2:upload -- <file> <key> [...]` | Upload files to R2 (e.g. `npm run r2:upload -- "shot.png" portfolio/whhf/shot.png`) |
 | `npm run r2:upload -- --site` | Upload the site images listed in `scripts/r2-upload.js` |
 | `npm run r2:upload -- --optimize` | Create any missing resized WebP copies for images in R2 |
+| `npm run project:add -- <slug> <folder> [--first]` | Upload a folder of project images and create/update its content file |
 | `npm run content:push` | Mirror `content/projects/*.md` into Sanity (backup) |
 | `npm run content:pull` | Sanity → repo (initial migration; won't overwrite files without `-- --force`) |
 
@@ -70,9 +71,15 @@ Only the four `## Overview / Problem / Solution / Impact` headings split section
 
 ### Adding a project
 
-1. Upload images: `npm run r2:upload -- "cover.png" portfolio/<slug>/cover.png` (resized copies are made automatically).
-2. Create `content/projects/<slug>.md` as above and commit. Vercel builds and deploys it.
-3. Run `npm run content:push` to update the Sanity backup.
+Put the images in a folder: `cover.png`, plus optional `gallery/`, `overview/`, `problem/`, `solution/` and `impact/` subfolders. Files are ordered by name, so prefix them `01-`, `02-`, … Then run:
+
+```bash
+npm run project:add -- my-project "C:\path\to\folder" --first   # --first = show it first on the site
+```
+
+That uploads everything to R2 (with resized copies) and creates `content/projects/my-project.md` with the image paths filled in and `TODO:` placeholders. Write the copy, then run `npm run build`; it refuses to build while any `TODO:` is left. Commit, then run `npm run content:push` to update the Sanity backup. Re-running on an existing slug adds new images and leaves the text alone.
+
+**With an AI agent:** `AGENTS.md` has the full procedure and the writing rules; Claude Code, Cursor, Codex and others read it automatically. Tell the agent something like: *"Add a project called X from the images in D:\shots\x. Here are my notes: …"*
 
 ### Sanity's role
 
