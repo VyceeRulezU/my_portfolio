@@ -11,13 +11,11 @@
 // (Cloudflare dashboard -> R2 -> Manage R2 API Tokens, "Object Read & Write" on the site's bucket).
 import { readFile } from 'node:fs/promises';
 import { extname } from 'node:path';
-import { S3Client, PutObjectCommand, GetObjectCommand, HeadObjectCommand, paginateListObjectsV2 } from '@aws-sdk/client-s3';
-import sharp from 'sharp';
-import dotenv from 'dotenv';
+import { paginateListObjectsV2 } from '@aws-sdk/client-s3';
+import {
+  s3, BUCKET, R2_WIDTHS, CONTENT_TYPES, RESIZABLE, put, getObject, exists, variantKey, uploadVariants, publicUrl,
+} from './lib/r2.js';
 
-dotenv.config({ path: ['.env.local', '.env'], quiet: true });
-
-const R2_WIDTHS = [800, 1920]; // keep in sync with src/utils/assetHelper.js
 const OPTIMIZE_PREFIXES = ['portfolio/', 'site/'];
 
 const SITE_UPLOADS = [
@@ -25,66 +23,7 @@ const SITE_UPLOADS = [
   ['src/assets/VI_Black_Logo.png', 'site/vi-logo-black.png'],
   ['src/assets/hero.png', 'site/hero.png'],
   ['src/assets/ironali-2.png', 'site/ironali-2.png'],
-  ['src/assets/whhf mock.png', 'portfolio/whhf/whhf-mock.png'],
 ];
-
-const CONTENT_TYPES = {
-  '.png': 'image/png',
-  '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg',
-  '.webp': 'image/webp',
-  '.avif': 'image/avif',
-  '.gif': 'image/gif',
-  '.svg': 'image/svg+xml',
-  '.pdf': 'application/pdf',
-};
-const RESIZABLE = /\.(png|jpe?g|webp)$/i;
-
-const { R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET, VITE_CLOUDFLARE_URL } = process.env;
-const missing = Object.entries({ R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET })
-  .filter(([, v]) => !v)
-  .map(([k]) => k);
-if (missing.length) {
-  console.error(`Missing in .env.local/.env: ${missing.join(', ')}`);
-  process.exit(1);
-}
-
-const s3 = new S3Client({
-  region: 'auto',
-  endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-  credentials: { accessKeyId: R2_ACCESS_KEY_ID, secretAccessKey: R2_SECRET_ACCESS_KEY },
-});
-const publicBase = (VITE_CLOUDFLARE_URL || '').replace(/\/$/, '');
-const publicUrl = (key) => (publicBase ? `${publicBase}/${encodeURI(key)}` : key);
-
-const put = (Key, Body, ContentType) => s3.send(new PutObjectCommand({
-  Bucket: R2_BUCKET,
-  Key,
-  Body,
-  ContentType,
-  CacheControl: 'public, max-age=604800',
-}));
-
-const variantKey = (key, width) => `optimized/w${width}/${key.replace(/\.[^.]+$/, '')}.webp`;
-
-async function exists(Key) {
-  try {
-    await s3.send(new HeadObjectCommand({ Bucket: R2_BUCKET, Key }));
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-async function uploadVariants(key, buffer, { skipExisting = false } = {}) {
-  for (const width of R2_WIDTHS) {
-    const vKey = variantKey(key, width);
-    if (skipExisting && await exists(vKey)) continue;
-    const webp = await sharp(buffer).resize({ width, withoutEnlargement: true }).webp({ quality: 80 }).toBuffer();
-    await put(vKey, webp, 'image/webp');
-    console.log(`  + ${vKey} (${Math.round(webp.length / 1024)} KB)`);
-  }
-}
 
 async function uploadFiles(uploads) {
   let failed = 0;
@@ -105,15 +44,14 @@ async function uploadFiles(uploads) {
 async function optimizeBucket() {
   let failed = 0;
   for (const Prefix of OPTIMIZE_PREFIXES) {
-    for await (const page of paginateListObjectsV2({ client: s3 }, { Bucket: R2_BUCKET, Prefix })) {
+    for await (const page of paginateListObjectsV2({ client: s3 }, { Bucket: BUCKET, Prefix })) {
       for (const { Key } of page.Contents || []) {
         if (!RESIZABLE.test(Key)) continue;
         const done = await Promise.all(R2_WIDTHS.map((w) => exists(variantKey(Key, w))));
         if (done.every(Boolean)) continue;
         try {
           console.log(Key);
-          const obj = await s3.send(new GetObjectCommand({ Bucket: R2_BUCKET, Key }));
-          await uploadVariants(Key, Buffer.from(await obj.Body.transformToByteArray()), { skipExisting: true });
+          await uploadVariants(Key, await getObject(Key), { skipExisting: true });
         } catch (err) {
           failed += 1;
           console.error(`failed ${Key}: ${err.message}`);

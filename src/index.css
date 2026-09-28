@@ -54,8 +54,12 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.4s ease, color 0.4s ease;
-  overflow-x: visible;
-  overflow-y: auto;
+}
+
+/* clip (not hidden/auto) stops sideways scroll without creating a scroll container,
+   which would break position: sticky (e.g. the case-study contents sidebar). */
+body {
+  overflow-x: clip;
 }
 
 #root {

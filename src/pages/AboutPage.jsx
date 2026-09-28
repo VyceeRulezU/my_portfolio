@@ -88,7 +88,7 @@ export default function AboutPage() {
         </div>
 
         {/* Timeline Section */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '8rem', marginBottom: '10rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))', gap: 'clamp(4rem, 8vw, 8rem)', marginBottom: '10rem' }}>
            <div>
               <div style={{ color: 'var(--text-tertiary)', fontSize: '0.65rem', fontWeight: '700', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '3rem' }}>
                 CAREER JOURNEY

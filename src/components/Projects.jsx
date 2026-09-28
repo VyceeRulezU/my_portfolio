@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { getProjects } from '../utils/projects';
+import { PROJECTS } from '../utils/projects';
 import SmartImg from './SmartImg';
 
 const TABS = [
@@ -16,11 +16,6 @@ const INITIAL_VISIBLE = 9;
 export default function Projects() {
   const [activeTab, setActiveTab] = useState('all');
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
-  const [projects, setProjects] = useState([]);
-
-  useEffect(() => {
-    getProjects().then(setProjects);
-  }, []);
 
   const selectTab = (tabId) => {
     setActiveTab(tabId);
@@ -28,8 +23,8 @@ export default function Projects() {
   };
 
   const filteredProjects = activeTab === 'all'
-    ? projects
-    : projects.filter(p => p.type === activeTab);
+    ? PROJECTS
+    : PROJECTS.filter(p => p.type === activeTab);
 
 
   return (
@@ -230,6 +225,7 @@ export default function Projects() {
                   </Link>
                   {project.url && project.url !== '#' && (
                     <a href={project.url} target="_blank" rel="noopener noreferrer" style={{
+                      marginLeft: 'auto',
                       color: 'var(--text-tertiary)',
                       textDecoration: 'none',
                       fontSize: '0.65rem',

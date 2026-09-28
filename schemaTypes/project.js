@@ -52,6 +52,18 @@ export default defineType({
       description: 'Public R2 URL for the thumbnail, e.g. https://<bucket>.r2.dev/portfolio/<slug>/<file>.png. Takes priority over Main Image.',
     }),
     defineField({
+      name: 'r2Images',
+      title: 'R2 Images (synced from repo)',
+      type: 'object',
+      readOnly: true,
+      description: 'Written by `npm run content:push`. The repo (content/projects/*.md) is the source of truth.',
+      fields: ['gallery', 'overview', 'problem', 'solution', 'impact'].map((name) => ({
+        name,
+        type: 'array',
+        of: [{ type: 'url' }],
+      })),
+    }),
+    defineField({
       name: 'r2Folder',
       title: 'R2 Gallery Folder',
       type: 'string',

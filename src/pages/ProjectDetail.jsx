@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, X, ArrowLeft, Lock, Mail } from 'lucide-react';
 import { PortableText } from '@portabletext/react';
 import { SITE_IMAGES } from '../utils/assetHelper';
 import SmartImg from '../components/SmartImg';
-import { getProjects, getProject, getGallery, unlockProject } from '../utils/projects';
+import { PROJECTS, findProject, getProject, getGallery, unlockProject } from '../utils/projects';
 
 const GATED_EMAIL = "ironaliv@gmail.com";
 
@@ -20,17 +20,21 @@ const SECTIONS = [
 ];
 
 const hasContent = (value) => (Array.isArray(value) ? value.length > 0 : Boolean(value));
+const sectionHasText = (project, secId) => Boolean(project.html?.[secId]) || hasContent(project[secId]);
 
 // Keyed by id so all per-project state resets when navigating between case studies.
 export default function ProjectDetailPage() {
   const { id } = useParams();
+  const local = findProject(id);
+  // Old URLs (e.g. a renamed slug) redirect to the canonical one.
+  if (local && local.id !== id) return <Navigate to={`/work/${local.id}`} replace />;
   return <ProjectDetail key={id} id={id} />;
 }
 
 function ProjectDetail({ id }) {
-  const [project, setProject] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [allProjects, setAllProjects] = useState([]);
+  // Repo projects are available synchronously; only Sanity fallbacks need a fetch.
+  const [project, setProject] = useState(() => findProject(id) ?? null);
+  const [loading, setLoading] = useState(() => !findProject(id));
   const [galleryImages, setGalleryImages] = useState([]);
   const [activeSection, setActiveSection] = useState('');
   const [selectedImgIdx, setSelectedImgIdx] = useState(null);
@@ -64,10 +68,7 @@ function ProjectDetail({ id }) {
   }, [galleryImages.length]);
 
   useEffect(() => {
-    getProjects().then(setAllProjects);
-  }, []);
-
-  useEffect(() => {
+    if (!loading) return;
     let cancelled = false;
     getProject(id).then((data) => {
       if (cancelled) return;
@@ -76,7 +77,7 @@ function ProjectDetail({ id }) {
     });
 
     return () => { cancelled = true; };
-  }, [id]);
+  }, [id, loading]);
 
   useEffect(() => {
     if (!project || isLocked) return;
@@ -101,7 +102,7 @@ function ProjectDetail({ id }) {
   const visibleSections = project ? SECTIONS.filter((sec) => {
     if (sec.id === 'snapshot') return true;
     if (sec.id === 'gallery') return galleryImages.length > 0;
-    return hasContent(project[sec.id]) || hasContent(project[`${sec.id}Images`]);
+    return sectionHasText(project, sec.id) || hasContent(project[`${sec.id}Images`]);
   }) : [];
   const visibleSectionIds = visibleSections.map((sec) => sec.id).join(',');
 
@@ -337,6 +338,7 @@ function ProjectDetail({ id }) {
                   );
 
                   const content = project[sec.id];
+                  const html = project.html?.[sec.id];
                   const images = project[`${sec.id}Images`];
 
                   return (
@@ -344,9 +346,11 @@ function ProjectDetail({ id }) {
                       <h2 style={{ fontSize: '2.5rem', fontWeight: '700', marginBottom: '1rem', fontFamily: "'Space Grotesk', sans-serif" }}>{sec.label}</h2>
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '2.5rem', letterSpacing: '0.05em' }}>{sec.subtitle}</div>
 
-                      {hasContent(content) && (
+                      {(html || hasContent(content)) && (
                         <div className="section-text-content" style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', lineHeight: '1.8', maxWidth: '900px' }}>
-                          {Array.isArray(content) ? <PortableText value={content} /> : <p>{content}</p>}
+                          {html
+                            ? <div dangerouslySetInnerHTML={{ __html: html }} />
+                            : Array.isArray(content) ? <PortableText value={content} /> : <p>{content}</p>}
                         </div>
                       )}
 
@@ -390,8 +394,8 @@ function ProjectDetail({ id }) {
           </div>
 
           <div className="other-works-grid">
-            {allProjects
-              .filter(p => p.id !== id)
+            {PROJECTS
+              .filter(p => p.id !== project.id)
               .slice(0, 3)
               .map((p, idx) => (
                 <motion.div key={p.id} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.1 }}>
